@@ -8,6 +8,7 @@ import { doneOn, tasksFor } from '../core/tasks';
 import { exportCsv, exportDaysCsv } from '../core/data';
 import { activePack } from '../core/pack';
 import { forecast } from '../core/study';
+import { EXAM_FULL, examMinutes } from '../core/exam';
 import { dueWords, hasLearn, lessonShort, nextLesson } from '../core/learn';
 import { RECAP_HOUR } from '../core/recap';
 import { sfx } from '../core/sfx';
@@ -60,7 +61,7 @@ function commands(date: string): Cmd[] {
   if (b && !killedEntry(b)) out.push({ id: 'battle', g: '挑', label: `${b.name}に 挑む`, hint: b.hp <= 0 ? 'とどめ' : bossWhen(b, date), run: to('battle') });
   out.push(
     { id: 'kakera', g: '欠', label: '朝の欠片を 解く', hint: '5問', run: to('session/kakera') },
-    { id: 'mock', g: '試', label: '模試を 受ける', hint: '20問', run: to('session/mock/20') },
+    { id: 'mock', g: '試', label: '模試を 受ける（本番形式）', hint: pk ? `${Math.min(EXAM_FULL, pk.questions.length)}問 · ${examMinutes(pk, Math.min(EXAM_FULL, pk.questions.length))}分` : '', run: to('exam') },
     { id: 'mondai', g: '問', label: '問題集を ひらく', hint: pk ? `${pk.questions.length}問` : '', run: to('mondai') },
     { id: 'all', g: '全', label: '全問を 解く', hint: pk ? `${pk.questions.length}問` : '', run: to('session/all') },
     { id: 'miss', g: '誤', label: 'まちがえた問題だけ 解く', run: to('session/miss') },

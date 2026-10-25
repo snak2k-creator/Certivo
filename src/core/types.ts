@@ -142,7 +142,7 @@ export interface Answer {
   pick: string[];
   mode: Mode;
 }
-export type Mode = 'kakera' | 'drill' | 'boss';
+export type Mode = 'kakera' | 'drill' | 'boss' | 'mock';
 export interface StudyProgress {
   cards: Record<string, Card>;
   history: Record<string, { a: number; c: number }>;
@@ -151,7 +151,11 @@ export interface StudyProgress {
   bestStreak: number;
   lastStudyDate: string;
   learn?: Learned;
+  /** finished mock exams, newest last */
+  mocks?: MockRun[];
 }
+/** One mock exam: the day, questions asked, right answers, the score on the exam's scale, and time used. */
+export interface MockRun { d: string; n: number; ok: number; score: number; secs: number; pass: boolean }
 /** A word's place in the review boxes, like a question's card. */
 export interface WordCard { box: number; due: string; seen: number; ok: number; lastAt: string }
 /** 覚える: lessons read (id -> the day first read), words in review, and when the big picture was read. */

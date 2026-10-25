@@ -303,9 +303,9 @@ function Book({ date, sel }: { date: string; sel?: string }) {
               <svg viewBox="0 0 320 320" width="48" height="48" aria-hidden="true" dangerouslySetInnerHTML={{ __html: kanmon(pk?.code) }} />
               <span class="zk-tt">
                 <b>模試</b>
-                <span>本番と同じ 配分の 20問で、腕だめし</span>
+                <span>本番と同じ 問題数と 時間で、腕だめし</span>
               </span>
-              <a class="z-bo zk-tgo" href="#/session/mock">
+              <a class="z-bo zk-tgo" href="#/exam">
                 はじめる
               </a>
             </div>

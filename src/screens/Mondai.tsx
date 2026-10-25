@@ -6,13 +6,12 @@ import { state } from '../core/store';
 import { activePack } from '../core/pack';
 import { topicShort } from '../core/enemy';
 import { domainQuestions, newProgress, qStates, type QState } from '../core/study';
-import { pad } from '../core/util';
+import { md, pad } from '../core/util';
 import { openSheet } from '../ui/sheets';
 import { Arrow, ChevR } from '../ui/icons';
+import { EXAM_FULL, examMinutes, loadSitting, timeLeft } from '../core/exam';
 
 const BLANK = newProgress();
-/** The two mock lengths: a short one, and about as long as the real exam. */
-const MOCKS = [20, 50];
 
 export function Mondai() {
   const pk = activePack();
@@ -92,24 +91,7 @@ function Bank({ pk, sp }: { pk: Pack; sp: StudyProgress }) {
           まちがい
         </span>
 
-        <div class="mn-mock">
-          <span class="ln-hn z-min" aria-hidden="true">
-            試
-          </span>
-          <span class="ln-hl">模試</span>
-          <b class="z-min ln-ht">本番と同じ 配分で</b>
-          <span class="ln-hd">
-            {pk.domains.length}章から 試験の重さどおりに · 換算 {pk.scoreMax}点 · 合格 {pk.passingScore}
-          </span>
-          <span class="mn-mgo">
-            {MOCKS.filter((n, i) => i === 0 || n < all.length).map((n, i) => (
-              <a key={n} class={i === 0 ? 'z-bw' : 'z-bo'} href={`#/session/mock/${n}`}>
-                {n}問{i > 0 ? ' · 本番の長さ' : ''}
-                {i === 0 && <Arrow />}
-              </a>
-            ))}
-          </span>
-        </div>
+        <MockCard pk={pk} sp={sp} />
 
         <div class="mn-modes">
           <a class="mn-md" href="#/session/all">
@@ -193,5 +175,41 @@ function Bank({ pk, sp }: { pk: Pack; sp: StudyProgress }) {
         })}
       </div>
     </div>
+  );
+}
+
+/** The mock exam as the real one: its length, time and pass line, the last score, or the sitting still running. */
+function MockCard({ pk, sp }: { pk: Pack; sp: StudyProgress }) {
+  const n = Math.min(EXAM_FULL, pk.questions.length);
+  const runs = sp.mocks || [];
+  const last = runs[runs.length - 1];
+  const sit = loadSitting();
+  const live = sit && sit.certId === pk.id && timeLeft(sit) > 0 ? sit : null;
+  return (
+    <a class="mn-mock" href="#/exam">
+      <span class="ln-hn z-min" aria-hidden="true">
+        試
+      </span>
+      <span class="ln-hl">模試 · 本番形式</span>
+      <b class="z-min ln-ht">
+        {n}問 · {examMinutes(pk, n)}分
+      </b>
+      <span class="ln-hd">
+        合格 {pk.passingScore} / {pk.scoreMax} · 解説は 終わってから
+      </span>
+      {last && (
+        <span class="mn-last">
+          <span>前回 {md(last.d)}</span>
+          <b class="z-min z-num">{last.score}</b>
+          <span class={last.pass ? 'ok' : undefined}>{last.pass ? '合格ライン' : `あと ${pk.passingScore - last.score}`}</span>
+        </span>
+      )}
+      <span class="mn-mgo">
+        <span class="z-bw">
+          {live ? `つづける · 残り ${Math.ceil(timeLeft(live) / 60000)}分` : '受ける'}
+          <Arrow />
+        </span>
+      </span>
+    </a>
   );
 }

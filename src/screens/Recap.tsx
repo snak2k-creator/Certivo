@@ -21,7 +21,7 @@ import { ChevL, ChevR, Close, Menu, Pencil } from '../ui/icons';
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 const HOURS = Array.from({ length: 19 }, (_, i) => i + 6);
 const TALLY_MAX = 15;
-const MODE_NAME: Record<Mode, string> = { kakera: '朝の欠片', drill: '問題', boss: '戦い' };
+const MODE_NAME: Record<Mode, string> = { kakera: '朝の欠片', drill: '問題', boss: '戦い', mock: '模試' };
 
 /** The page to open: the date in the route, or tonight's page after 22:00, or yesterday's. */
 export function recapDate(args: string[], today: string, now: Date) {

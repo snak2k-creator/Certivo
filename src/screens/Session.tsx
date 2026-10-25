@@ -6,7 +6,7 @@ import type { Conf, Pack, Question, Task } from '../core/types';
 import { state } from '../core/store';
 import { aiLeft, answer, finishStudyTask, type Outcome } from '../core/actions';
 import { topicShort } from '../core/enemy';
-import { backTag, domainOf, domainQuestions, forecast, isCorrect, orderSet, pickDrill, pickKakera, pickMock, progress, qStates, settled } from '../core/study';
+import { backTag, domainQuestions, forecast, isCorrect, orderSet, pickDrill, pickKakera, progress, qStates, settled } from '../core/study';
 import { hasLearn, lessonShort, lessonState, openTopics } from '../core/learn';
 import { packOf, topicById } from '../core/pack';
 import { levelFromTotal, need, title } from '../core/game';
@@ -21,7 +21,7 @@ import { sheets } from '../ui/sheets';
 import { Arrow, Close } from '../ui/icons';
 import { Linked } from '../ui/words';
 
-type Kind = 'kakera' | 'drill' | 'zukan' | 'mock' | 'set';
+type Kind = 'kakera' | 'drill' | 'zukan' | 'set';
 /** Past this many questions the bar shows a count instead of one mark per question, and the set can end early. */
 const LONG = 20;
 interface Plan {
@@ -37,7 +37,7 @@ interface Plan {
 
 /**
  * Reads the route: session/task/:id, session/kakera, session/topic/:id, session/domain/:id, session/zukan/:bossId,
- * and from 問題集 (nothing locked): session/mock[/:n], session/all, session/fresh, session/miss,
+ * and from 問題集 (nothing locked): session/all, session/fresh, session/miss,
  * session/topic/:id/all, session/domain/:id/all
  */
 function plan(pk: Pack, args: string[], date: string): Plan | string {
@@ -91,10 +91,6 @@ function plan(pk: Pack, args: string[], date: string): Plan | string {
     if (whole) return set(`第${n + 1}章`, domainQuestions(pk, id), pk.domains[n].name);
     const qs = pickDrill(pk, sp, date, { domainId: id }, 3);
     return { kind: 'drill', tag: `第${n + 1}章 ${pk.domains[n].name}`, title: `${qs.length}問だけ`, qs, scope: domainQuestions(pk, id), scopeName: pk.domains[n].name };
-  }
-  if (what === 'mock') {
-    const qs = pickMock(pk, Math.max(1, Number(id) || 20));
-    return { kind: 'mock', tag: '模試', title: `${qs.length}問`, qs, scope: pk.questions, scopeName: '' };
   }
   if (what === 'all') return set('全問', pk.questions, '全体');
   if (what === 'fresh' || what === 'miss') {
@@ -297,7 +293,7 @@ function Questions({ pk, p, date }: { pk: Pack; p: Plan; date: string }) {
     upd({ tutorState: ok && R.tutor ? 'done' : 'fail' });
   };
 
-  const home = p.kind === 'set' || p.kind === 'mock' ? 'mondai' : 'today';
+  const home = p.kind === 'set' ? 'mondai' : 'today';
   const close = () => {
     sfx('tock');
     back(home);
@@ -488,44 +484,11 @@ function Questions({ pk, p, date }: { pk: Pack; p: Plan; date: string }) {
   );
 }
 
-/** The mock exam on the exam's scale, and how each chapter went. */
-function MockRows({ p, pk, marks, right }: { p: Plan; pk: Pack; marks: ('ok' | 'ng')[]; right: number }) {
-  const scaled = Math.round((right / Math.max(1, marks.length)) * pk.scoreMax);
-  const rows = pk.domains
-    .map((d, n) => {
-      const idx = p.qs.map((q, i) => (i < marks.length && domainOf(pk, q) === d.id ? i : -1)).filter((i) => i >= 0);
-      return { n, name: d.name, asked: idx.length, ok: idx.filter((i) => marks[i] === 'ok').length };
-    })
-    .filter((r) => r.asked);
-  return (
-    <>
-      <div class="ss-rr">
-        <span class="ss-rrl">換算</span>
-        <span class="ss-rrv z-num">
-          <b>{scaled}</b>
-          <small>
-            / {pk.scoreMax} · 合格 {pk.passingScore}
-            {scaled >= pk.passingScore ? ' · 合格ライン' : ''}
-          </small>
-        </span>
-      </div>
-      {rows.map((r) => (
-        <div class="ss-rr" key={r.n}>
-          <span class="ss-rrl">第{r.n + 1}章</span>
-          <span class="ss-rrt">
-            {r.name} · {r.ok} / {r.asked}
-          </span>
-        </div>
-      ))}
-    </>
-  );
-}
-
 function Result({ p, pk, right, marks, xp, dmg, out, before, onClose }: { p: Plan; pk: Pack; right: number; marks: ('ok' | 'ng')[]; xp: number; dmg: number; out: Outcome | null; before: { total: number; settled: number; forecast: number }; onClose: () => void }) {
   const sp = progress(state.p, pk.id);
   // a long set ended early counts what was answered
   const total = marks.length;
-  const bank = p.kind === 'set' || p.kind === 'mock';
+  const bank = p.kind === 'set';
   const missedNow = bank ? [...qStates(pk, sp).values()].filter((s) => s === 'ng').length : 0;
   const word = WORDS.find(([r]) => right / total >= r)![1];
   const nowSettled = settled(sp, p.scope);
@@ -582,7 +545,6 @@ function Result({ p, pk, right, marks, xp, dmg, out, before, onClose }: { p: Pla
             {up && <span class="z-tag z-tag-r ss-up">レベルアップ</span>}
           </span>
         </div>
-        {p.kind === 'mock' && <MockRows p={p} pk={pk} marks={marks} right={right} />}
         {out && (
           <div class="ss-rr">
             <span class="ss-rrl">やること</span>
