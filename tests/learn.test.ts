@@ -170,4 +170,21 @@ describe('another certification', () => {
     // a pack without words has no 覚える: its questions start right away
     expect(state.p.tasks.filter((t) => t.study?.certId === 'x-900').map((t) => t.study!.kind)).toEqual(['kakera']);
   });
+
+  it('gets its own 覚える the day it is switched to, and switching back brings the first one again', () => {
+    const words: Pack = { ...pack, id: 'x-900', code: 'X-900', name: 'Example' };
+    state.packs[words.id] = words;
+    const certs = () => learnTasks().map((t) => t.study!.certId);
+    ensureDay(pack, DAY);
+    expect(certs()).toEqual(['ai-103']);
+    ensureDay(words, DAY);
+    expect(certs()).toEqual(['x-900']);
+    ensureDay(pack, DAY);
+    expect(certs()).toEqual(['ai-103']);
+    // one the person deleted stays away for the day, switch or not
+    deleteTask('p', learnTasks()[0].id);
+    ensureDay(words, DAY);
+    ensureDay(pack, DAY);
+    expect(certs()).toEqual([]);
+  });
 });

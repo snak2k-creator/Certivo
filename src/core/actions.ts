@@ -235,15 +235,23 @@ function ensureSuggestion(pk: Pack, date: string) {
 
 /**
  * Today's 覚える, also an ordinary task: the next lesson, or once every lesson is read, a review of the words
- * that are due. One a day, made once (deleting it keeps it away for the day); yesterday's unfinished one goes.
+ * that are due. One a day per certification, made once (deleting it keeps it away for the day); yesterday's
+ * unfinished one goes, and so does another certification's after a switch.
  */
 function ensureLearn(pk: Pack, date: string) {
   const p = state.p;
-  const n = p.tasks.length;
-  p.tasks = p.tasks.filter((t) => !(isLearnTask(t) && !t.doneAt && (t.date < date || t.study!.certId !== pk.id)));
-  const dropped = p.tasks.length !== n;
   const d = dayOf(date);
-  if (d.learn || !hasLearn(pk) || p.tasks.some((t) => isLearnTask(t) && t.date === date)) return dropped;
+  let made = Array.isArray(d.learn) ? d.learn : [];
+  const n = p.tasks.length;
+  p.tasks = p.tasks.filter((t) => {
+    if (!isLearnTask(t) || t.doneAt || (t.date >= date && t.study!.certId === pk.id)) return true;
+    // taken away by the switch, not by the person: switching back brings it again
+    if (t.date === date) made = made.filter((c) => c !== t.study!.certId);
+    return false;
+  });
+  const dropped = p.tasks.length !== n;
+  if (dropped) d.learn = made;
+  if (made.includes(pk.id) || !hasLearn(pk) || p.tasks.some((t) => isLearnTask(t) && t.date === date && t.study!.certId === pk.id)) return dropped;
   const sp = progress(p, pk.id);
   const next = nextLesson(pk, sp);
   const due = dueWords(pk, sp, date).length;
@@ -261,7 +269,7 @@ function ensureLearn(pk: Pack, date: string) {
     createdAt: Date.now() - 2,
     from: 'zan',
   });
-  d.learn = true;
+  d.learn = [...made, pk.id];
   return true;
 }
 

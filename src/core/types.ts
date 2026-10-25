@@ -204,8 +204,8 @@ export interface Day {
   work?: number;
   dmg?: number;
   kakera?: boolean;
-  /** today's 覚える task was made (deleting it keeps it away for the day) */
-  learn?: boolean;
+  /** the certifications whose 覚える task was made today (deleting it keeps it away for the day) */
+  learn?: string[];
   /** 覚える: words recalled and lessons read */
   words?: number;
   lessons?: string[];
