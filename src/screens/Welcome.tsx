@@ -23,11 +23,11 @@ function Mark({ k }: { k: number }) {
       <g transform="rotate(-36.3 50 50)">
         <g class="l-bl">
           <g transform="rotate(36.3 50 50)">
-            <path d="M67 32H82L33 68H18Z" fill="#E3402B" />
+            <path d="M67 32H82L33 68H18Z" fill="#D04D3A" />
           </g>
         </g>
       </g>
-      <path class="l-hl" d="M84 30.5L94 23.2M16 69.5L6 76.8" stroke="#E3402B" stroke-width="2" fill="none" />
+      <path class="l-hl" d="M84 30.5L94 23.2M16 69.5L6 76.8" stroke="#D04D3A" stroke-width="2" fill="none" />
       <g transform="rotate(-36.3 50 50)">
         <rect class="l-fl" x="-6" y="49.3" width="112" height="1.4" fill="#FFF" />
       </g>

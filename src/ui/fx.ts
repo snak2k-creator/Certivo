@@ -2,6 +2,7 @@
 // re-render through the store's emit, so every screen sees the same effect at the same time.
 import { canUndo, emit, undo } from '../core/store';
 import { sfx } from '../core/sfx';
+import { reducedMotion } from '../core/util';
 
 export interface Toast { id: number; text: string; undo?: boolean; action?: { label: string; run: () => void }; dur: number; top?: boolean }
 export type Cut = { id: number; kind: 'lv'; lv: number; out?: boolean } | { id: number; kind: 'three' };
@@ -69,6 +70,8 @@ export function closeCut() {
   }
 }
 export function cutThree() {
+  // with motion turned down, the bands become a plain note
+  if (reducedMotion()) return toast('今日の三つ、斬った · +30');
   fx.cutNow = { id: ++seq, kind: 'three' };
   emit();
   later('cut', 1550, () => {

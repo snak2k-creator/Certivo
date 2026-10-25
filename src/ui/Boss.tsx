@@ -48,7 +48,7 @@ export function BossCard({ date, class: c = '' }: { date: string; class?: string
     <section class={`z-boss${dead ? ' is-dead' : ''}${ready ? ' is-ready' : ''} ${c}`} aria-label={aria}>
       <div class={`z-boss-in ${shake}`}>
         <svg class="z-boss-lines" viewBox="0 0 390 240" preserveAspectRatio="xMinYMin slice" aria-hidden="true">
-          <path d="M-10 196L190 60M20 226L210 98M-20 150L150 34" stroke="rgba(243,241,236,.05)" stroke-width="1" />
+          <path d="M-10 196L190 60M20 226L210 98M-20 150L150 34" stroke="rgba(234,231,224,.05)" stroke-width="1" />
         </svg>
         <div class="z-boss-art">
           <BossArt b={b} opts={b.type === 'bakusa' ? { scars: Math.min(3, Math.floor((1 - b.hp / b.max) * 4)) } : undefined} />

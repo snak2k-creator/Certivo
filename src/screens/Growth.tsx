@@ -269,61 +269,61 @@ function Forecast({ pk, sp, date, exam }: { pk: Pack; sp: StudyProgress; date: s
             <div ref={box} class="gr-fw">
               <svg viewBox={`0 0 ${w} 190`} width={w} height="190" aria-hidden="true">
                 {weeks.map((k) => (
-                  <path key={'w' + k} d={`M${f(X(k))} ${TOP}V${BOT}`} stroke="rgba(243,241,236,.05)" />
+                  <path key={'w' + k} d={`M${f(X(k))} ${TOP}V${BOT}`} stroke="rgba(234,231,224,.05)" />
                 ))}
                 {ticks.map((v) =>
                   Math.abs(v - pass) < 25 ? null : (
                     <g key={'t' + v}>
-                      <path d={`M${L} ${f(Y(v))}H${R}`} stroke="rgba(243,241,236,.1)" />
+                      <path d={`M${L} ${f(Y(v))}H${R}`} stroke="rgba(234,231,224,.1)" />
                       <text x={L - 8} y={f(Y(v) + 3.5)} text-anchor="end" font-size="10" font-weight="700" fill="#6D6C70">
                         {v}
                       </text>
                     </g>
                   ),
                 )}
-                <path d={`M${L} ${BOT}H${R}`} stroke="rgba(243,241,236,.3)" />
-                <path d={`M${L} ${f(Y(pass))}H${R}`} stroke="#E3402B" stroke-width="1.5" />
-                <text x={L - 8} y={f(Y(pass) + 3.5)} text-anchor="end" font-size="10" font-weight="900" fill="#E3402B">
+                <path d={`M${L} ${BOT}H${R}`} stroke="rgba(234,231,224,.3)" />
+                <path d={`M${L} ${f(Y(pass))}H${R}`} stroke="#D04D3A" stroke-width="1.5" />
+                <text x={L - 8} y={f(Y(pass) + 3.5)} text-anchor="end" font-size="10" font-weight="900" fill="#D04D3A">
                   {pass}
                 </text>
-                <text x={L + 6} y={f(Y(pass) - 6)} font-size="10" font-weight="900" fill="#E3402B" letter-spacing=".08em">
+                <text x={L + 6} y={f(Y(pass) - 6)} font-size="10" font-weight="900" fill="#D04D3A" letter-spacing=".08em">
                   合格ライン
                 </text>
-                <path d={`M${f(xToday)} ${TOP}V${BOT}`} stroke="rgba(243,241,236,.3)" stroke-dasharray="2 3" />
-                {examIn && <path d={`M${R} 8V${BOT}`} stroke="#E3402B" stroke-width="2" />}
+                <path d={`M${f(xToday)} ${TOP}V${BOT}`} stroke="rgba(234,231,224,.3)" stroke-dasharray="2 3" />
+                {examIn && <path d={`M${R} 8V${BOT}`} stroke="#D04D3A" stroke-width="2" />}
                 {weeks.map((k) => (
-                  <path key={'k' + k} d={`M${f(X(k))} ${BOT}V${BOT + 5}`} stroke="rgba(243,241,236,.3)" />
+                  <path key={'k' + k} d={`M${f(X(k))} ${BOT}V${BOT + 5}`} stroke="rgba(234,231,224,.3)" />
                 ))}
                 {firstLabel && (
                   <text x={L} y="180" font-size="10.5" font-weight="700" fill="#8F8E92">
                     {md(o.past[0].d)}
                   </text>
                 )}
-                <text x={f(xToday)} y="180" text-anchor={firstLabel ? 'middle' : 'start'} font-size="10.5" font-weight="900" fill="#F3F1EC">
+                <text x={f(xToday)} y="180" text-anchor={firstLabel ? 'middle' : 'start'} font-size="10.5" font-weight="900" fill="#E6E2DA">
                   今日
                 </text>
-                <text x={R + 2} y="180" text-anchor="end" font-size="10.5" font-weight="900" fill={examIn ? '#E3402B' : '#8F8E92'}>
+                <text x={R + 2} y="180" text-anchor="end" font-size="10.5" font-weight="900" fill={examIn ? '#D04D3A' : '#8F8E92'}>
                   {examIn ? `本番 ${md(until)}` : md(until)}
                 </text>
                 <g class="gr-pj">
-                  <polygon points={band} fill="rgba(243,241,236,.09)" />
-                  <path d={proj} fill="none" stroke="#F3F1EC" stroke-opacity=".8" stroke-width="2" stroke-dasharray="5 4" />
-                  <path d={`M${f(R - 6)} ${f(Y(end.v))}l6 -6l6 6l-6 6Z`} fill="#0B0B0C" stroke="#F3F1EC" stroke-width="1.6" />
-                  <text x={f(R - 10)} y={f(Y(end.v) - 9)} text-anchor="end" font-size="11" font-weight="900" fill="#F3F1EC">
+                  <polygon points={band} fill="rgba(234,231,224,.09)" />
+                  <path d={proj} fill="none" stroke="#E6E2DA" stroke-opacity=".8" stroke-width="2" stroke-dasharray="5 4" />
+                  <path d={`M${f(R - 6)} ${f(Y(end.v))}l6 -6l6 6l-6 6Z`} fill="#121214" stroke="#E6E2DA" stroke-width="1.6" />
+                  <text x={f(R - 10)} y={f(Y(end.v) - 9)} text-anchor="end" font-size="11" font-weight="900" fill="#E6E2DA">
                     {examIn ? '本番' : '予想'} {end.v}
                   </text>
                 </g>
-                <path class="gr-hp" pathLength={1} d={hist} fill="none" stroke="#F3F1EC" stroke-width="2.5" stroke-linejoin="miter" />
+                <path class="gr-hp" pathLength={1} d={hist} fill="none" stroke="#E6E2DA" stroke-width="2.5" stroke-linejoin="miter" />
                 {ci > N - 1 && (
                   <g class="gr-cx">
-                    <path d={`M${f(X(ci) - 6)} ${f(Y(pass) + 10)}L${f(X(ci) + 6)} ${f(Y(pass) - 10)}`} stroke="#0B0B0C" stroke-width="7" />
-                    <path d={`M${f(X(ci) - 6)} ${f(Y(pass) + 10)}L${f(X(ci) + 6)} ${f(Y(pass) - 10)}`} stroke="#E3402B" stroke-width="3.2" />
-                    <text x={f(clamp(X(ci), L + 50, R - 50))} y={f(Y(pass) + 25)} text-anchor="middle" font-size="10.5" font-weight="900" fill="#E3402B">
+                    <path d={`M${f(X(ci) - 6)} ${f(Y(pass) + 10)}L${f(X(ci) + 6)} ${f(Y(pass) - 10)}`} stroke="#121214" stroke-width="7" />
+                    <path d={`M${f(X(ci) - 6)} ${f(Y(pass) + 10)}L${f(X(ci) + 6)} ${f(Y(pass) - 10)}`} stroke="#D04D3A" stroke-width="3.2" />
+                    <text x={f(clamp(X(ci), L + 50, R - 50))} y={f(Y(pass) + 25)} text-anchor="middle" font-size="10.5" font-weight="900" fill="#D04D3A">
                       {md(o.cross)} ごろ 越える
                     </text>
                   </g>
                 )}
-                <path class="gr-td" d={`M${f(xToday - 7)} ${f(Y(v0))}l7 -7l7 7l-7 7Z`} fill="#F3F1EC" stroke="#0B0B0C" stroke-width="2" />
+                <path class="gr-td" d={`M${f(xToday - 7)} ${f(Y(v0))}l7 -7l7 7l-7 7Z`} fill="#E6E2DA" stroke="#121214" stroke-width="2" />
               </svg>
               <div
                 class="gr-hit"
@@ -347,25 +347,25 @@ function Forecast({ pk, sp, date, exam }: { pk: Pack; sp: StudyProgress; date: s
             <div class="gr-flg" aria-hidden="true">
               <span>
                 <svg width="16" height="6">
-                  <path d="M0 3H16" stroke="#F3F1EC" stroke-width="2.5" />
+                  <path d="M0 3H16" stroke="#E6E2DA" stroke-width="2.5" />
                 </svg>
                 これまで
               </span>
               <span>
                 <svg width="16" height="6">
-                  <path d="M0 3H16" stroke="#F3F1EC" stroke-width="2" stroke-dasharray="5 3" />
+                  <path d="M0 3H16" stroke="#E6E2DA" stroke-width="2" stroke-dasharray="5 3" />
                 </svg>
                 予想
               </span>
               <span>
                 <svg width="16" height="10">
-                  <rect width="16" height="10" fill="rgba(243,241,236,.16)" />
+                  <rect width="16" height="10" fill="rgba(234,231,224,.16)" />
                 </svg>
                 ぶれ幅
               </span>
               <span>
                 <svg width="16" height="6">
-                  <path d="M0 3H16" stroke="#E3402B" stroke-width="2" />
+                  <path d="M0 3H16" stroke="#D04D3A" stroke-width="2" />
                 </svg>
                 合格ライン {pass}
               </span>
@@ -693,19 +693,19 @@ function Hex({ date, sp }: { date: string; sp?: StudyProgress }) {
         <div ref={ref} class={`gr-hx${seen ? ' in' : ''}`}>
           <svg viewBox={`0 0 ${w} 300`} width={w} height="300" aria-hidden="true">
             {[20, 40, 60, 80, 100].map((r) => (
-              <polygon key={r} points={poly(r)} fill="none" stroke={r === 100 ? 'rgba(243,241,236,.16)' : 'rgba(243,241,236,.07)'} />
+              <polygon key={r} points={poly(r)} fill="none" stroke={r === 100 ? 'rgba(234,231,224,.16)' : 'rgba(234,231,224,.07)'} />
             ))}
             {rows.map((_, i) => {
               const [x, y] = pt(i, 100);
-              return <path key={i} d={`M${cx} ${cy}L${x.toFixed(1)} ${y.toFixed(1)}`} stroke="rgba(243,241,236,.07)" />;
+              return <path key={i} d={`M${cx} ${cy}L${x.toFixed(1)} ${y.toFixed(1)}`} stroke="rgba(234,231,224,.07)" />;
             })}
             <g class="gr-hpoly" style={{ transformOrigin: `${cx}px ${cy}px` }}>
-              <polygon points={poly(rad)} fill="#E3402B" transform="translate(5 5)" />
-              <polygon points={poly(rad)} fill="#F3F1EC" />
+              <polygon points={poly(rad)} fill="#D04D3A" transform="translate(5 5)" />
+              <polygon points={poly(rad)} fill="#E6E2DA" />
             </g>
             {(() => {
               const [x, y] = pt(sel, 100);
-              return <path d={`M${cx} ${cy}L${x.toFixed(1)} ${y.toFixed(1)}`} stroke="#E3402B" stroke-width="2" stroke-dasharray="3 3" />;
+              return <path d={`M${cx} ${cy}L${x.toFixed(1)} ${y.toFixed(1)}`} stroke="#D04D3A" stroke-width="2" stroke-dasharray="3 3" />;
             })()}
           </svg>
           {rows.map((r, i) => {

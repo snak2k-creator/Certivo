@@ -86,7 +86,16 @@ export function esc(s: string) {
   return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 }
 
+let calm = false;
+/** 動きを控えめに: the person's own switch, on top of the device's reduce-motion setting. */
+export function setCalm(on: boolean) {
+  if (calm === on) return;
+  calm = on;
+  if (typeof document !== 'undefined') document.documentElement.classList.toggle('z-calm', on);
+}
+
 export const reducedMotion = () => {
+  if (calm) return true;
   try {
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   } catch {

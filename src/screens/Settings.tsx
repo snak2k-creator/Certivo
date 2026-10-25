@@ -406,8 +406,11 @@ export function Settings({ args }: { args: string[] }) {
       <Row title="振動" sub="対応している 端末だけ。">
         <Switch on={pr.haptics} label="振動" onChange={(v) => setProfile({ haptics: v })} />
       </Row>
-      <Row title="朝の幕あけ" sub="その日 はじめて ひらいたときの、2秒の 演出。動きを減らす 設定の端末では 出ません。">
+      <Row title="朝の幕あけ" sub="その日 はじめて ひらいたときの、2秒の 演出。動きを 控えめに しているときは 出ません。">
         <Switch on={pr.ritual} label="朝の幕あけ" onChange={(v) => setProfile({ ritual: v })} />
+      </Row>
+      <Row title="動きを 控えめに" sub="揺れ、光、切り込みの 演出を止めて、画面の 動きを 最小にします。端末で 動きを減らす 設定に しているときも、こうなります。">
+        <Switch on={!!pr.calm} label="動きを 控えめに" onChange={(v) => setProfile({ calm: v })} />
       </Row>
 
       {/* records */}

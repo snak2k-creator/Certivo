@@ -5,7 +5,7 @@ type P = { size?: number; class?: string; style?: JSX.CSSProperties };
 
 export const Arrow = ({ size = 14, class: c, style }: P) => (
   <svg width={size} height={(size * 12) / 14} viewBox="0 0 14 12" aria-hidden="true" class={c} style={style}>
-    <path d="M1 6H12M7.5 1.5L12.5 6L7.5 10.5" fill="none" stroke="#E3402B" stroke-width="2.2" stroke-linecap="square" />
+    <path d="M1 6H12M7.5 1.5L12.5 6L7.5 10.5" fill="none" stroke="#D04D3A" stroke-width="2.2" stroke-linecap="square" />
   </svg>
 );
 
@@ -77,10 +77,10 @@ export const Google = ({ size = 18 }: P) => (
 /** The ZAN mark: two bars cut by a red blade. `anim` adds the classes the login screen animates. */
 export const Logo = ({ size = 40, anim = false }: { size?: number; anim?: boolean }) => (
   <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true" class={anim ? 'l-mk' : undefined}>
-    <rect class={anim ? 'l-top' : undefined} x="18" y="18" width="64" height="14" fill="#F3F1EC" />
-    <rect class={anim ? 'l-bot' : undefined} x="18" y="68" width="64" height="14" fill="#F3F1EC" />
-    <path class={anim ? 'l-bl' : undefined} d="M67 32H82L33 68H18Z" fill="#E3402B" />
-    <path class={anim ? 'l-hl' : undefined} d="M84 30.5L94 23.2M16 69.5L6 76.8" stroke="#E3402B" stroke-width="2" />
+    <rect class={anim ? 'l-top' : undefined} x="18" y="18" width="64" height="14" fill="#E6E2DA" />
+    <rect class={anim ? 'l-bot' : undefined} x="18" y="68" width="64" height="14" fill="#E6E2DA" />
+    <path class={anim ? 'l-bl' : undefined} d="M67 32H82L33 68H18Z" fill="#D04D3A" />
+    <path class={anim ? 'l-hl' : undefined} d="M84 30.5L94 23.2M16 69.5L6 76.8" stroke="#D04D3A" stroke-width="2" />
   </svg>
 );
 
@@ -88,9 +88,9 @@ export const Logo = ({ size = 40, anim = false }: { size?: number; anim?: boolea
 export const NavToday = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
     <path d="M4 5H20V21H4Z" fill="currentColor" />
-    <path d="M4 5H20V9H4Z" fill="#0B0B0C" opacity=".25" />
+    <path d="M4 5H20V9H4Z" fill="#121214" opacity=".25" />
     <path d="M8 2.5V7M16 2.5V7" stroke="currentColor" stroke-width="2.4" />
-    <path data-r d="M8.5 14.5L11 17L15.5 11.5" fill="none" stroke="#E3402B" stroke-width="2.2" />
+    <path data-r d="M8.5 14.5L11 17L15.5 11.5" fill="none" stroke="#D04D3A" stroke-width="2.2" />
   </svg>
 );
 export const NavBattle = () => (
@@ -102,7 +102,7 @@ export const NavBattle = () => (
 export const NavTasks = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
     <path d="M4 4H20V21H4Z" fill="currentColor" />
-    <path d="M7.5 9H16.5M7.5 13H16.5M7.5 17H13" stroke="#0B0B0C" stroke-width="2" />
+    <path d="M7.5 9H16.5M7.5 13H16.5M7.5 17H13" stroke="#121214" stroke-width="2" />
   </svg>
 );
 export const NavZukan = () => (
@@ -114,18 +114,18 @@ export const NavZukan = () => (
 export const NavGrowth = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
     <path d="M12 2.5L20.5 7.5V16.5L12 21.5L3.5 16.5V7.5Z" fill="currentColor" />
-    <path class="nv-in" d="M12 8L15.5 10V14L12 16L8.5 14V10Z" fill="#0B0B0C" />
+    <path class="nv-in" d="M12 8L15.5 10V14L12 16L8.5 14V10Z" fill="#121214" />
   </svg>
 );
 export const NavRecap = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
     <path d="M5 3H19V21H5Z" fill="currentColor" />
-    <path data-r d="M8 15L11 8M11.5 15L14.5 8" stroke="#E3402B" stroke-width="2" />
+    <path data-r d="M8 15L11 8M11.5 15L14.5 8" stroke="#D04D3A" stroke-width="2" />
   </svg>
 );
 export const NavSettings = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
     <path d="M3 6H21M3 12H21M3 18H21" stroke="currentColor" stroke-width="2.2" />
-    <path data-r d="M7 3.5V8.5M15 9.5V14.5M10 15.5V20.5" stroke="#E3402B" stroke-width="2.6" />
+    <path data-r d="M7 3.5V8.5M15 9.5V14.5M10 15.5V20.5" stroke="#D04D3A" stroke-width="2.6" />
   </svg>
 );

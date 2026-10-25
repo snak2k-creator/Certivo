@@ -13,7 +13,7 @@
 .td-date b { font-size: 40px; line-height: .78; font-weight: 800; letter-spacing: -.01em; }
 .td-date .z-tag { margin-bottom: 1px; }
 .td-sub { display: block; margin-top: 9px; font-size: 11.5px; font-weight: 700; color: var(--g2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.td-wcnt { display: flex; align-items: baseline; gap: 6px; height: 38px; padding: 0 12px; box-shadow: inset 0 0 0 1.5px rgba(243, 241, 236, .22); align-items: center; }
+.td-wcnt { display: flex; align-items: baseline; gap: 6px; height: 38px; padding: 0 12px; box-shadow: inset 0 0 0 1.5px rgba(234, 231, 224, .22); align-items: center; }
 .td-wcnt b { font-size: 20px; font-weight: 800; }
 .td-wcnt span { font-size: 11.5px; font-weight: 900; color: var(--g1); }
 
@@ -32,10 +32,10 @@
 .z-boss-when { display: block; margin-top: 6px; font-size: 11.5px; line-height: 1.5; font-weight: 700; color: var(--g1); }
 .z-boss-go { margin-top: 14px; }
 .z-boss.is-ready .z-boss-when { color: #FFF; }
-.z-boss.is-ready .z-hp { background: rgba(227, 64, 43, .25); }
+.z-boss.is-ready .z-hp { background: rgba(208, 77, 58, .25); }
 .z-boss.is-dead .z-boss-art > svg { filter: grayscale(1) brightness(.55); }
 .z-boss.is-dead .z-boss-name { color: var(--g1); }
-.z-boss-x { position: absolute; left: -10%; top: 50%; width: 120%; height: 3px; background: var(--r); transform: rotate(-24deg); box-shadow: 0 0 0 1px rgba(11, 11, 12, .6); }
+.z-boss-x { position: absolute; left: -10%; top: 50%; width: 120%; height: 3px; background: var(--r); transform: rotate(-24deg); box-shadow: 0 0 0 1px rgba(18, 18, 20, .6); }
 .z-boss.is-wait { min-height: 160px; }
 .z-boss.is-wait .z-boss-tx { width: auto; padding-right: 16px; }
 @media (min-width: 480px) { .z-boss-art { right: 10px; } }
@@ -47,21 +47,21 @@
 .td-three { font-size: 11.5px; font-weight: 700; color: var(--g2); white-space: nowrap; }
 .td-three.on { color: var(--r); font-weight: 900; }
 .td-sh2 { margin-top: 26px; }
-.td-tagk { box-shadow: inset 0 0 0 1px rgba(243, 241, 236, .3); }
+.td-tagk { box-shadow: inset 0 0 0 1px rgba(234, 231, 224, .3); }
 
 /* the list */
 .td-list { margin-top: 6px; }
 .td-empty { margin-bottom: 4px; }
 .td-add { width: 100%; min-height: 56px; padding: 8px 16px; border: none; background: transparent; display: flex; align-items: center; gap: 13px; text-align: left; color: var(--g1); transition: background-color .15s; }
-.td-add:active { background: rgba(243, 241, 236, .035); }
-.td-addk { flex: none; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1.5px rgba(243, 241, 236, .3); color: var(--r); }
+.td-add:active { background: rgba(234, 231, 224, .035); }
+.td-addk { flex: none; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1.5px rgba(234, 231, 224, .3); color: var(--r); }
 .td-addt { font-size: 14.5px; font-weight: 900; color: var(--w); }
 .td-addh { min-width: 0; font-size: 11.5px; font-weight: 700; color: var(--g3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .td-hint { margin: 2px 16px 0 53px; font-size: 11px; font-weight: 700; color: var(--g4); }
 @media (hover: hover) and (pointer: fine) { .td-hint { display: none; } }
 
 /* the suggestion */
-.z-ai { position: relative; margin: 18px 16px 2px; padding: 11px 6px 11px 14px; display: flex; align-items: center; gap: 10px; box-shadow: inset 0 0 0 1px rgba(243, 241, 236, .16); background: repeating-linear-gradient(-55deg, rgba(243, 241, 236, .025) 0 6px, transparent 6px 12px); }
+.z-ai { position: relative; margin: 18px 16px 2px; padding: 11px 6px 11px 14px; display: flex; align-items: center; gap: 10px; box-shadow: inset 0 0 0 1px rgba(234, 231, 224, .16); background: rgba(234, 231, 224, .025); }
 .z-ai-tx { flex: 1; min-width: 0; }
 .z-ai-l { display: flex; align-items: center; flex-wrap: wrap; gap: 0 8px; font-size: 11px; font-weight: 900; color: var(--r); letter-spacing: .04em; }
 .z-ai-l span { font-weight: 700; color: var(--g2); letter-spacing: 0; }
@@ -87,7 +87,7 @@
 .td-replay { display: block; margin: 30px auto 0; height: 36px; padding: 0 14px; }
 
 /* the work notebook */
-.td-wban { margin: 4px 16px 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 3px; box-shadow: inset 0 0 0 1.5px rgba(243, 241, 236, .3); }
+.td-wban { margin: 4px 16px 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 3px; box-shadow: inset 0 0 0 1.5px rgba(234, 231, 224, .3); }
 .td-wban b { font-size: 14px; font-weight: 900; }
 .td-wban span { font-size: 12px; font-weight: 700; color: var(--g1); }
 .td-pro { margin-top: 30px; }

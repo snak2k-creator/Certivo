@@ -213,6 +213,8 @@ export interface Profile {
   sound: boolean;
   haptics: boolean;
   ritual: boolean;
+  /** 動きを控えめに: no shakes, flashes or cut-ins */
+  calm: boolean;
   lastRitual: string;
   certId: string;
   packs: PackEntry[];

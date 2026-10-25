@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { state } from './core/store';
 import { setProfile } from './core/actions';
-import { reducedMotion, ymd } from './core/util';
+import { reducedMotion, setCalm, ymd } from './core/util';
 import { useMedia, useNow, useStore } from './ui/hooks';
 import { useRoute, type Route } from './ui/router';
 import { Nav } from './ui/Nav';
@@ -68,6 +68,7 @@ export function Screen({ r, date, now, onReplay, pc = false }: { r: Route; date:
 
 export function App() {
   useStore();
+  setCalm(!!state.profile.calm);
   const r = useRoute();
   const now = useNow(30000);
   const date = ymd(now);

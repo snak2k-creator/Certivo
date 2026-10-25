@@ -4,7 +4,7 @@
 .z-row { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
 .z-row-m { cursor: default; padding-top: 0; padding-bottom: 0; }
 .z-rbody { flex: 1; min-width: 0; min-height: 62px; padding: 10px 0; border: none; background: transparent; display: flex; align-items: center; gap: 13px; text-align: left; }
-.z-row.sel { background: rgba(243, 241, 236, .05); box-shadow: inset 3px 0 0 var(--r), inset 0 -1px 0 rgba(243, 241, 236, .07); }
+.z-row.sel { background: rgba(234, 231, 224, .05); box-shadow: inset 3px 0 0 var(--r), inset 0 -1px 0 rgba(234, 231, 224, .07); }
 
 /* level chip */
 .z-lv-n { font-size: 17px; font-weight: 800; }
@@ -57,7 +57,7 @@
 .z-chip.auto { color: var(--k0); }
 .z-chip.auto::before { box-shadow: inset 0 0 0 1.5px var(--k0); background: transparent; }
 .z-chip.auto.on { color: var(--k0); }
-.z-chip.on.auto::before { background: rgba(11, 11, 12, .08); }
+.z-chip.on.auto::before { background: rgba(18, 18, 20, .08); }
 .tf-row { display: flex; flex-wrap: wrap; gap: 0 18px; }
 .tf-row .z-fld { flex: 1 1 120px; }
 .tf-row .z-time { width: 100%; }
@@ -67,16 +67,16 @@
 
 .tf-det { display: flex; flex-direction: column; }
 .tf-title { display: block; margin-top: 4px; font-size: 21px; line-height: 1.35; font-weight: 900; }
-.tf-study { margin-top: 14px; display: flex; align-items: center; gap: 10px; padding: 10px 0; box-shadow: inset 0 -1px 0 rgba(11, 11, 12, .12), inset 0 1px 0 rgba(11, 11, 12, .12); font-size: 13.5px; font-weight: 700; }
+.tf-study { margin-top: 14px; display: flex; align-items: center; gap: 10px; padding: 10px 0; box-shadow: inset 0 -1px 0 rgba(18, 18, 20, .12), inset 0 1px 0 rgba(18, 18, 20, .12); font-size: 13.5px; font-weight: 700; }
 .tf-study .z-bk { margin-left: auto; height: 36px; }
 .tf-dl { margin: 14px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; }
 .tf-dl div { min-width: 0; }
 .tf-dl dt { font-size: 10.5px; font-weight: 900; letter-spacing: .12em; color: var(--g3); }
 .tf-dl dd { margin: 3px 0 0; font-size: 14px; font-weight: 700; }
-.tf-note { margin-top: 16px; padding: 10px 12px; font-size: 13.5px; line-height: 1.7; white-space: pre-wrap; background: rgba(11, 11, 12, .05); }
+.tf-note { margin-top: 16px; padding: 10px 12px; font-size: 13.5px; line-height: 1.7; white-space: pre-wrap; background: rgba(18, 18, 20, .05); }
 .tf-acts { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 10px; }
 .tf-acts .z-bk { min-width: 96px; }
-.tf-del { margin-left: auto; color: #B02A18; box-shadow: inset 0 0 0 1.5px rgba(176, 42, 24, .5); }
+.tf-del { margin-left: auto; color: #A53A2A; box-shadow: inset 0 0 0 1.5px rgba(165, 58, 42, .5); }
 
 /* the nightly consent */
 .nt-t { display: block; margin-top: 6px; font-size: 22px; line-height: 1.45; font-weight: 800; }
@@ -87,18 +87,18 @@
 .nt-acts .z-txb { margin-left: auto; }
 
 /* work plan */
-.wp-card { margin: 18px 16px 0; padding: 12px 12px 12px 14px; display: flex; align-items: center; gap: 12px; box-shadow: inset 0 0 0 1px rgba(243, 241, 236, .16); background: repeating-linear-gradient(-55deg, rgba(243, 241, 236, .025) 0 6px, transparent 6px 12px); }
+.wp-card { margin: 18px 16px 0; padding: 12px 12px 12px 14px; display: flex; align-items: center; gap: 12px; box-shadow: inset 0 0 0 1px rgba(234, 231, 224, .16); background: rgba(234, 231, 224, .025); }
 .wp-tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .wp-l { font-size: 11px; font-weight: 900; letter-spacing: .04em; color: var(--g1); }
 .wp-tx b { font-size: 14.5px; font-weight: 700; }
 .wp-tx > span:last-child { font-size: 12px; color: var(--g2); }
-.wp-draft { flex-direction: column; align-items: stretch; gap: 0; padding: 14px; background: var(--k2); box-shadow: inset 0 0 0 1.5px rgba(243, 241, 236, .3); }
+.wp-draft { flex-direction: column; align-items: stretch; gap: 0; padding: 14px; background: var(--k2); box-shadow: inset 0 0 0 1.5px rgba(234, 231, 224, .3); }
 .wp-h { display: flex; align-items: center; gap: 10px; }
 .wp-h b { font-size: 15px; font-weight: 900; }
 .wp-h > span:last-child { margin-left: auto; font-size: 11px; font-weight: 900; color: var(--g2); }
 .wp-steps, .wp-list { margin: 10px 0 0; padding: 0; list-style: none; }
-.wp-steps label, .wp-list label { position: relative; display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 0; cursor: pointer; box-shadow: inset 0 -1px 0 rgba(243, 241, 236, .08); }
-.wp-list label { box-shadow: inset 0 -1px 0 rgba(11, 11, 12, .1); }
+.wp-steps label, .wp-list label { position: relative; display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 0; cursor: pointer; box-shadow: inset 0 -1px 0 rgba(234, 231, 224, .08); }
+.wp-list label { box-shadow: inset 0 -1px 0 rgba(18, 18, 20, .1); }
 .wp-steps input, .wp-list input { position: absolute; opacity: 0; width: 1px; height: 1px; }
 .wp-ck { flex: none; width: 20px; height: 20px; box-shadow: inset 0 0 0 1.5px currentColor; opacity: .6; }
 input:checked + .wp-ck { opacity: 1; background: var(--r); box-shadow: inset 0 0 0 1.5px var(--r); }
@@ -118,7 +118,7 @@ input:focus-visible + .wp-ck { outline: 2px solid currentColor; outline-offset: 
 .wp-list b { flex: none; font-size: 13px; color: var(--g3); }
 .wp-list label:not(.on) .wp-tt { color: var(--g3); text-decoration: line-through; }
 .wp-none { padding: 12px 0; font-size: 13px; color: var(--g3); }
-.wp-why { margin-top: 12px; font-size: 12.5px; font-weight: 700; color: #B02A18; }
+.wp-why { margin-top: 12px; font-size: 12.5px; font-weight: 700; color: #A53A2A; }
 
 /* a strip of seven days (やること, 1日の記録) */
 .z-week { position: relative; height: 60px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
@@ -128,11 +128,13 @@ input:focus-visible + .wp-ck { outline: 2px solid currentColor; outline-offset: 
 .z-wd:active { transform: scale(.9); transition-duration: .05s; }
 .z-wd b { font-size: 19px; line-height: 1; font-weight: 800; color: var(--w); transition: color .18s; }
 .z-wdw { font-size: 10.5px; font-weight: 900; line-height: 1; }
-.z-wt { display: block; height: 6px; background: repeating-linear-gradient(90deg, var(--r) 0 2px, transparent 2px 4px); transform: skewX(-24deg); }
-.z-wt0 { display: block; width: 6px; height: 1.5px; margin: 2px 0; background: rgba(243, 241, 236, .2); }
+.z-wt { display: block; height: 6px; background: repeating-linear-gradient(90deg, var(--g1) 0 2px, transparent 2px 4px); transform: skewX(-24deg); }
+.z-wd.on .z-wt { background: repeating-linear-gradient(90deg, var(--k0) 0 2px, transparent 2px 4px); }
+.z-wt0 { display: block; width: 6px; height: 1.5px; margin: 2px 0; background: rgba(234, 231, 224, .2); }
 .z-wnow { display: block; height: 6px; font-size: 9.5px; font-weight: 900; line-height: 6px; color: var(--r); }
 .z-wd.on, .z-wd.on b { color: var(--k0); }
-.z-wd.on .z-wt0 { background: rgba(11, 11, 12, .25); }
+.z-wd.on .z-wt0 { background: rgba(18, 18, 20, .25); }
 .z-wd.none b { color: var(--g3); }
 .z-wd.none.on b { color: var(--k0); }
 @media (prefers-reduced-motion: reduce) { .z-wsel { transition: none; } }
+.z-calm .z-wsel { transition: none; }

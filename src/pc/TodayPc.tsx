@@ -131,12 +131,12 @@ function Spark({ vs, pass, max }: { vs: number[]; pass: number; max: number }) {
   const last = vs.length - 1;
   return (
     <svg class="pt-spk" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`この2週間の 見込み。${vs[0]} から ${vs[last]}`}>
-      <line x1="0" x2={W} y1={y(pass)} y2={y(pass)} stroke="#E3402B" stroke-width="1.5" stroke-dasharray="4 4" />
+      <line x1="0" x2={W} y1={y(pass)} y2={y(pass)} stroke="#D04D3A" stroke-width="1.5" stroke-dasharray="4 4" />
       <text x={W} y={y(pass) - 5} text-anchor="end" class="pt-spkl">
         合格 {pass}
       </text>
-      <polyline points={pts} fill="none" stroke="#F3F1EC" stroke-width="2" stroke-linejoin="round" />
-      <rect x={x(last) - 4} y={y(vs[last]) - 4} width="8" height="8" fill="#F3F1EC" transform={`rotate(45 ${x(last)} ${y(vs[last])})`} />
+      <polyline points={pts} fill="none" stroke="#E6E2DA" stroke-width="2" stroke-linejoin="round" />
+      <rect x={x(last) - 4} y={y(vs[last]) - 4} width="8" height="8" fill="#E6E2DA" transform={`rotate(45 ${x(last)} ${y(vs[last])})`} />
     </svg>
   );
 }

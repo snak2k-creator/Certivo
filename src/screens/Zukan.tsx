@@ -61,7 +61,7 @@ function SplitArt({ b, size, fresh, k = '' }: { b: Pick<Boss, 'id' | 'type' | 't
     `<clipPath id="${id}b" clipPathUnits="userSpaceOnUse"><polygon points="-40,207 360,113 360,360 -40,360"/></clipPath></defs>` +
     `<g class="zk-ha"><g clip-path="url(#${id}a)"><use href="#${id}" width="320" height="320"/></g></g>` +
     `<g class="zk-hb"><g clip-path="url(#${id}b)"><use href="#${id}" width="320" height="320"/></g></g>` +
-    `<g class="zk-hs"><path d="M-30 212L350 122" stroke="#E3402B" stroke-width="5"/><path d="M-30 212L350 122" stroke="#FFF" stroke-width="1.6"/></g>`;
+    `<g class="zk-hs"><path d="M-30 212L350 122" stroke="#D04D3A" stroke-width="5"/><path d="M-30 212L350 122" stroke="#FFF" stroke-width="1.6"/></g>`;
   return <svg class={`zk-split${fresh ? ' fresh' : ''}`} viewBox="0 0 320 320" width={size} height={size} aria-hidden="true" style={{ overflow: 'visible' }} dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
@@ -76,7 +76,7 @@ function Defs() {
       <defs>
         <filter id="zk-sil" x="-6%" y="-6%" width="112%" height="112%" color-interpolation-filters="sRGB">
           <feMorphology in="SourceAlpha" operator="dilate" radius="2.4" result="d" />
-          <feFlood flood-color="#F3F1EC" flood-opacity=".2" />
+          <feFlood flood-color="#E6E2DA" flood-opacity=".2" />
           <feComposite in2="d" operator="in" result="edge" />
           <feFlood flood-color="#1B1B1E" />
           <feComposite in2="SourceAlpha" operator="in" result="body" />

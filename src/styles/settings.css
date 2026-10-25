@@ -1,7 +1,7 @@
 /* 設定: rows with a hairline, the exact list of what goes out under each AI switch, light cards for choices */
 .st { overflow-x: clip; }
 @keyframes stIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
-@keyframes stFlash { 0%, 35% { background: rgba(227, 64, 43, .2); box-shadow: inset 3px 0 0 var(--r); } 100% { background: rgba(243, 241, 236, .04); box-shadow: inset 3px 0 0 rgba(227, 64, 43, 0); } }
+@keyframes stFlash { 0%, 35% { background: rgba(208, 77, 58, .2); box-shadow: inset 3px 0 0 var(--r); } 100% { background: rgba(234, 231, 224, .04); box-shadow: inset 3px 0 0 rgba(208, 77, 58, 0); } }
 
 .st-back { height: 44px; padding: 0 12px 0 8px; border: none; background: transparent; display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 900; color: var(--w); transition: transform .2s var(--spring); }
 .st-back:active { transform: scale(.92); transition-duration: .05s; }
@@ -10,7 +10,7 @@
 .st-sec { margin-top: 38px; }
 
 /* rows: what it is on the left, the control on the right; .top rows put the controls on their own line */
-.st-row { min-height: 64px; padding: 12px 16px; display: flex; align-items: center; gap: 14px; box-shadow: inset 0 -1px 0 rgba(243, 241, 236, .07); scroll-margin: 90px; }
+.st-row { min-height: 64px; padding: 12px 16px; display: flex; align-items: center; gap: 14px; box-shadow: inset 0 -1px 0 rgba(234, 231, 224, .07); scroll-margin: 90px; }
 .st-row.top { flex-wrap: wrap; row-gap: 12px; }
 .st-row.top > .st-rt { flex-basis: 100%; }
 .st-row:has(+ .st-detail), .st-row:has(+ .st-log) { box-shadow: none; }
@@ -21,8 +21,8 @@
 .st-sw:disabled { opacity: .35; }
 
 /* exactly what is sent */
-.st-detail { padding: 0 16px 14px; box-shadow: inset 0 -1px 0 rgba(243, 241, 236, .07); }
-.st-sends { padding: 11px 14px 12px; background: rgba(243, 241, 236, .04); clip-path: polygon(0 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%); }
+.st-detail { padding: 0 16px 14px; box-shadow: inset 0 -1px 0 rgba(234, 231, 224, .07); }
+.st-sends { padding: 11px 14px 12px; background: rgba(234, 231, 224, .04); clip-path: polygon(0 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%); }
 .st-detail.flash .st-sends { animation: stFlash 1.8s ease-out both; }
 .st-sends > b { font-size: 10.5px; font-weight: 900; letter-spacing: .16em; color: var(--g2); }
 .st-sends ul { margin: 6px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; }
@@ -36,7 +36,7 @@
 .st-card > p { margin-top: 6px; font-size: 12.5px; font-weight: 500; line-height: 1.75; color: var(--g4); }
 .st-acts { margin-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .st-acts .z-txb { margin-left: auto; }
-.st-warn { background: rgba(227, 64, 43, .1); color: var(--w); box-shadow: inset 4px 0 0 var(--r); clip-path: none; }
+.st-warn { background: rgba(208, 77, 58, .1); color: var(--w); box-shadow: inset 4px 0 0 var(--r); clip-path: none; }
 .st-warn > p { color: var(--g1); }
 .st-kill { position: relative; height: 38px; padding: 0 24px; border: none; background: var(--r); color: #FFF; font-size: 13.5px; font-weight: 900; letter-spacing: .08em; clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); transition: transform .2s var(--spring); }
 .st-kill:active { transform: scale(.94); transition-duration: .04s; }
@@ -46,21 +46,21 @@
 .st-note em { display: block; margin-top: 4px; font-style: normal; color: var(--r); }
 
 /* the AI count this month */
-.st-ai0 { margin: 14px 16px 6px; padding: 12px 14px; font-size: 12.5px; font-weight: 700; line-height: 1.7; color: var(--g1); box-shadow: inset 0 0 0 1px rgba(243, 241, 236, .12); }
+.st-ai0 { margin: 14px 16px 6px; padding: 12px 14px; font-size: 12.5px; font-weight: 700; line-height: 1.7; color: var(--g1); box-shadow: inset 0 0 0 1px rgba(234, 231, 224, .12); }
 .st-use { margin: 16px 16px 4px; display: flex; align-items: baseline; gap: 6px; font-size: 12px; font-weight: 900; color: var(--g2); white-space: nowrap; }
 .st-use > b { font-size: 28px; font-weight: 800; line-height: 1; color: var(--w); }
-.st-useb { position: relative; flex: 1; align-self: center; margin-left: 12px; height: 6px; background: rgba(243, 241, 236, .12); transform: skewX(-24deg); overflow: hidden; }
+.st-useb { position: relative; flex: 1; align-self: center; margin-left: 12px; height: 6px; background: rgba(234, 231, 224, .12); transform: skewX(-24deg); overflow: hidden; }
 .st-useb i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--w); transition: width .6s cubic-bezier(.2, .8, .2, 1); }
 .st-count { flex: none; font-family: 'Shippori Mincho B1', serif; font-size: 16px; font-weight: 800; color: var(--g1); }
-.st-log { margin: 0; padding: 0 16px 12px; list-style: none; box-shadow: inset 0 -1px 0 rgba(243, 241, 236, .07); }
+.st-log { margin: 0; padding: 0 16px 12px; list-style: none; box-shadow: inset 0 -1px 0 rgba(234, 231, 224, .07); }
 .st-log li { display: flex; gap: 10px; padding: 3px 0; font-size: 12px; font-weight: 500; line-height: 1.55; color: var(--g1); }
 .st-log li > span { flex: none; color: var(--g3); }
 
 /* dark chips for the monthly limit */
 .st-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .st-chip { position: relative; min-width: 50px; height: 36px; padding: 0 13px; border: none; background: transparent; display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-family: 'Shippori Mincho B1', serif; font-size: 16px; font-weight: 800; color: var(--g1); isolation: isolate; transition: transform .2s var(--spring), color .1s; }
-.st-chip::before { content: ""; position: absolute; inset: 0; z-index: -1; box-shadow: inset 0 0 0 1.5px rgba(243, 241, 236, .24); clip-path: polygon(7px 0, 100% 0, calc(100% - 7px) 100%, 0 100%); transition: background-color .12s; }
-.st-chip:hover::before { box-shadow: inset 0 0 0 1.5px rgba(243, 241, 236, .5); }
+.st-chip::before { content: ""; position: absolute; inset: 0; z-index: -1; box-shadow: inset 0 0 0 1.5px rgba(234, 231, 224, .24); clip-path: polygon(7px 0, 100% 0, calc(100% - 7px) 100%, 0 100%); transition: background-color .12s; }
+.st-chip:hover::before { box-shadow: inset 0 0 0 1.5px rgba(234, 231, 224, .5); }
 .st-chip.on { color: var(--k0); }
 .st-chip.on::before { background: var(--w); box-shadow: none; }
 .st-chip:active { transform: scale(.93); transition-duration: .04s; }
@@ -71,10 +71,12 @@
 .st-inp:focus-visible { outline: 2px solid var(--w); outline-offset: 2px; }
 .st-btns { display: flex; flex-wrap: wrap; gap: 6px; }
 
-.st-foot { margin: 44px 16px 0; padding-top: 16px; font-size: 11.5px; font-weight: 700; line-height: 1.8; color: var(--g3); box-shadow: inset 0 1px 0 rgba(243, 241, 236, .1); }
+.st-foot { margin: 44px 16px 0; padding-top: 16px; font-size: 11.5px; font-weight: 700; line-height: 1.8; color: var(--g3); box-shadow: inset 0 1px 0 rgba(234, 231, 224, .1); }
 .st-foot > span { display: block; margin-top: 10px; font-size: 11px; letter-spacing: .08em; color: var(--g4); }
 
 @media (prefers-reduced-motion: reduce) {
   .st-card, .st-detail.flash .st-sends { animation: none !important; }
   .st-detail.flash .st-sends { box-shadow: inset 3px 0 0 var(--r); }
 }
+.z-calm .st-card, .z-calm .st-detail.flash .st-sends { animation: none !important; }
+.z-calm .st-detail.flash .st-sends { box-shadow: inset 3px 0 0 var(--r); }
