@@ -1,3 +1,4 @@
+import './core/move';
 import { render } from 'preact';
 import './styles/base.css';
 import './styles/ui.css';
