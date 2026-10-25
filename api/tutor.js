@@ -1,41 +1,56 @@
-// AI tutor endpoint (Vercel Node function). The API key stays on the server (ANTHROPIC_API_KEY).
-// GET  -> 200 when the tutor is configured, 503 otherwise (the app hides the tutor on 503).
-// POST { prompt } -> streams the answer as plain text.
-const MODEL = process.env.CERTIVO_MODEL || "claude-sonnet-5-5";
-const MAX_PROMPT = 8000;
+// POST /api/tutor { input: { stem, options, answer, pick, explanation, ask } } -> the explanation, streamed as text.
+// Remaining uses come back in the x-zan-left and x-zan-cap headers.
+import { aiConfigured, errorCode, streamText } from './_lib/claude.js';
+import { authMode, caller } from './_lib/auth.js';
+import { giveBack, take } from './_lib/quota.js';
+import { SYSTEM, tutor } from './_lib/prompts.js';
+import { noStore, readJson } from './_lib/http.js';
 
 export default async function handler(req, res) {
-  const key = process.env.ANTHROPIC_API_KEY;
-  if (!key) return res.status(503).json({ error: "tutor_not_configured" });
-  if (req.method === "GET") return res.status(200).json({ ok: true });
-  if (req.method !== "POST") return res.status(405).end();
+  noStore(res);
+  if (req.method !== 'POST') return res.status(405).json({ error: 'method' });
+  if (!aiConfigured() || authMode() === 'none') return res.status(503).json({ error: 'ai_off' });
+  const body = await readJson(req);
+  const job = body ? tutor(body.input) : null;
+  if (!job) return res.status(400).json({ error: 'bad_request' });
+  const who = await caller(req);
+  if (!who) return res.status(401).json({ error: 'sign_in' });
+  const q = await take(who);
+  if (!q.ok) return res.status(429).json({ error: q.reason, left: q.left, cap: q.cap });
 
-  const prompt = typeof req.body?.prompt === "string" ? req.body.prompt : "";
-  if (!prompt || prompt.length > MAX_PROMPT) return res.status(400).json({ error: "bad_prompt" });
-
-  const upstream = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
-    body: JSON.stringify({ model: MODEL, max_tokens: 1024, stream: true, messages: [{ role: "user", content: prompt }] }),
+  res.writeHead(200, {
+    'content-type': 'text/plain; charset=utf-8',
+    'cache-control': 'no-store',
+    'x-zan-left': String(q.left ?? ''),
+    'x-zan-cap': String(q.cap),
   });
-  if (upstream.status === 429) return res.status(429).json({ error: "rate_limited" });
-  if (!upstream.ok || !upstream.body) return res.status(502).json({ error: "upstream_failed" });
-
-  res.writeHead(200, { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" });
-  const reader = upstream.body.getReader(), dec = new TextDecoder();
-  let buf = "";
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buf += dec.decode(value, { stream: true });
-    let i;
-    while ((i = buf.indexOf("\n")) >= 0) {
-      const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
-      if (!line.startsWith("data:")) continue;
-      try {
-        const ev = JSON.parse(line.slice(5));
-        if (ev.type === "content_block_delta" && ev.delta?.type === "text_delta") res.write(ev.delta.text);
-      } catch { /* ignore keep-alives */ }
+  const abort = new AbortController();
+  res.on('close', () => {
+    if (!res.writableFinished) abort.abort();
+  });
+  let wrote = false;
+  try {
+    const end = await streamText({
+      system: SYSTEM,
+      prompt: job.prompt,
+      signal: abort.signal,
+      onText: (t) => {
+        wrote = true;
+        res.write(t);
+      },
+    });
+    if (end === 'refusal') {
+      if (!wrote) await giveBack(who);
+      res.write(wrote ? '\n（ここから先は、答えられませんでした）' : 'この問いには、ここでは 答えられませんでした。');
+    } else if (end === 'max_tokens') {
+      if (!wrote) await giveBack(who);
+      res.write(wrote ? '…' : 'いまは 答えられません。少しあとで、もう一度。');
+    }
+  } catch (e) {
+    if (!wrote) await giveBack(who);
+    if (!abort.signal.aborted) {
+      console.error('zan tutor', errorCode(e));
+      res.write(wrote ? '\n（通信が 途切れました）' : 'いまは 答えられません。少しあとで、もう一度。');
     }
   }
   res.end();
