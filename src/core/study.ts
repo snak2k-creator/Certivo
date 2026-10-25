@@ -267,3 +267,31 @@ export function weakestTopic(pk: Pack, sp: StudyProgress, today: string) {
   }
   return best;
 }
+
+/* ---------- the question bank: every question, any time ---------- */
+/** Where a question stands in the bank: never asked, last answered right, or last missed (or only guessed). */
+export type QState = 'new' | 'ok' | 'ng';
+
+/** Each question's state from its last answer; an old card whose answers left the log falls back on its box. */
+export function qStates(pk: Pack, sp: StudyProgress) {
+  const last = new Map<string, Answer>();
+  for (const a of sp.log) last.set(a.q, a);
+  const out = new Map<string, QState>();
+  for (const q of pk.questions) {
+    const a = last.get(q.id);
+    const c = sp.cards[q.id];
+    out.set(q.id, a ? (a.ok && a.conf !== 'guess' ? 'ok' : 'ng') : !c ? 'new' : c.box === 0 && c.seen > c.correct ? 'ng' : 'ok');
+  }
+  return out;
+}
+
+/**
+ * A whole set from the bank, in the order that suits going through all of it: the ones never asked in book
+ * order (chapter, then unit), then the missed ones, then the rest weakest first.
+ */
+export function orderSet(pk: Pack, sp: StudyProgress, today: string, qs: Question[]) {
+  const st = qStates(pk, sp);
+  const at = new Map(pk.questions.map((q, i) => [q.id, i]));
+  const rank = (q: Question) => (st.get(q.id) === 'new' ? 0 : st.get(q.id) === 'ng' ? 1 : 2);
+  return shuffle(qs).sort((a, b) => rank(a) - rank(b) || (rank(a) === 0 ? at.get(a.id)! - at.get(b.id)! : weakness(sp, b, today) - weakness(sp, a, today)));
+}

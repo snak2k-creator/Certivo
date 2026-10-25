@@ -92,8 +92,25 @@
 .ss-rbar > i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--k0); transition: width .9s .4s cubic-bezier(.2, .9, .25, 1); }
 .ss-rbar > b { position: absolute; left: 70%; top: 0; bottom: 0; width: 2px; background: var(--r); }
 .ss-resf { margin-top: 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.ss-resf > span { font-size: 11.5px; font-weight: 700; line-height: 1.6; color: var(--g3); }
+.ss-resf > span:first-child { font-size: 11.5px; font-weight: 700; line-height: 1.6; color: var(--g3); }
 .ss-resf .z-bk { flex: none; min-width: 108px; }
+.ss-resb { flex: none; display: flex; align-items: center; gap: 10px; }
+.ss-resb .z-bo2 { height: 42px; padding: 0 14px; }
+@media (max-width: 420px) {
+  .ss-resf:has(.z-bo2) { flex-direction: column; align-items: stretch; }
+  .ss-resb > * { flex: 1; }
+}
+
+/* a long set from 問題集: a count instead of one mark per question, and a way to stop there */
+.ss-count { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--g2); }
+.ss-count > b { font-family: 'Shippori Mincho B1', serif; font-size: 17px; font-weight: 800; color: var(--w); }
+.ss-cbar { position: relative; width: 84px; height: 6px; background: rgba(234, 231, 224, .14); transform: skewX(-24deg); overflow: hidden; }
+.ss-cbar > i { position: absolute; inset: 0 auto 0 0; background: var(--r); transition: width .25s cubic-bezier(.2, .9, .25, 1); }
+.ss-end { height: 32px; padding: 0 10px; border: none; background: transparent; font-size: 12px; font-weight: 900; color: var(--g2); box-shadow: inset 0 0 0 1.5px rgba(234, 231, 224, .22); transition: transform .2s var(--spring), color .12s; }
+.ss-end:hover { color: var(--w); }
+.ss-end:active { transform: scale(.94); transition-duration: .04s; }
+.ss-ress.many { flex-wrap: wrap; gap: 4px; max-width: 70%; }
+.ss-ress.many > i { width: 5px; height: 16px; animation-delay: calc(.2s + var(--j) * .012s); }
 
 @media (prefers-reduced-motion: reduce) {
   .ss-panel, .ss-q, .ss-op, .ss-fb, .ss-res, .ss-ress > i.ok { animation: none !important; }

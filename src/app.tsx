@@ -16,6 +16,7 @@ import { Welcome } from './screens/Welcome';
 import { Battle } from './screens/Battle';
 import { Session } from './screens/Session';
 import { Learn } from './screens/Learn';
+import { Mondai } from './screens/Mondai';
 import { Lesson } from './screens/Lesson';
 import { Tasks } from './screens/Tasks';
 import { Recap } from './screens/Recap';
@@ -56,6 +57,8 @@ export function Screen({ r, date, now, onReplay, pc = false }: { r: Route; date:
       return <Session args={r.args} date={date} />;
     case 'learn':
       return <Learn args={r.args} date={date} />;
+    case 'mondai':
+      return <Mondai />;
     case 'lesson':
       return <Lesson args={r.args} date={date} />;
     case 'tasks':

@@ -10,7 +10,8 @@ import { DOW, dow, md } from '../core/util';
 import { dayList, doneCount, examDays, examEntry } from '../ui/derive';
 import { killedEntry } from '../ui/Boss';
 import { LvChip } from '../ui/LvChip';
-import { Account, Logo, NavBattle, NavGrowth, NavLearn, NavRecap, NavTasks, NavToday, NavZukan } from '../ui/icons';
+import { Account, Logo, NavBank, NavBattle, NavGrowth, NavLearn, NavRecap, NavTasks, NavToday, NavZukan } from '../ui/icons';
+import { qStates } from '../core/study';
 import type { Route } from '../ui/router';
 import { recapPointer } from '../screens/Today';
 import { switchBook } from './common';
@@ -19,6 +20,7 @@ interface Item { r: string; label: string; icon: FunctionComponent; personal?: b
 const ITEMS: Item[] = [
   { r: 'today', label: '今日', icon: NavToday },
   { r: 'learn', label: '覚える', icon: NavLearn, personal: true },
+  { r: 'mondai', label: '問題集', icon: NavBank, personal: true },
   { r: 'battle', label: '挑む', icon: NavBattle, personal: true },
   { r: 'tasks', label: 'やること', icon: NavTasks },
   { r: 'zukan', label: '図鑑', icon: NavZukan, personal: true },
@@ -47,6 +49,12 @@ function badge(r: string, date: string, now: Date): { text: string; red?: boolea
     const sp = pk && state.p.study[pk.id];
     const n = pk && sp ? dueWords(pk, sp, date).length : 0;
     return n ? { text: `復習 ${n}` } : null;
+  }
+  if (r === 'mondai') {
+    const pk = activePack();
+    const sp = pk && state.p.study[pk.id];
+    const miss = pk && sp ? [...qStates(pk, sp).values()].filter((s) => s === 'ng').length : 0;
+    return miss ? { text: `まちがい ${miss}` } : pk ? { text: `${pk.questions.length}問` } : null;
   }
   if (r === 'zukan') return state.p.zukan.length ? { text: `${state.p.zukan.length}体` } : null;
   if (r === 'recap') {

@@ -6,22 +6,24 @@ import type { Conf, Pack, Question, Task } from '../core/types';
 import { state } from '../core/store';
 import { aiLeft, answer, finishStudyTask, type Outcome } from '../core/actions';
 import { topicShort } from '../core/enemy';
-import { backTag, domainOf, domainQuestions, forecast, isCorrect, pickDrill, pickKakera, pickMock, progress, settled } from '../core/study';
+import { backTag, domainOf, domainQuestions, forecast, isCorrect, orderSet, pickDrill, pickKakera, pickMock, progress, qStates, settled } from '../core/study';
 import { hasLearn, lessonShort, lessonState, openTopics } from '../core/learn';
 import { packOf, topicById } from '../core/pack';
-import { levelFromTotal, need, title, unlocked, UNLOCK_LV } from '../core/game';
+import { levelFromTotal, need, title } from '../core/game';
 import { aiReady, askTutor } from '../core/ai';
 import { doneOn } from '../core/tasks';
 import { BUZZ, buzz, sfx } from '../core/sfx';
 import { shuffle } from '../core/util';
 import { celebrate } from '../ui/slash';
-import { back } from '../ui/router';
+import { back, go } from '../ui/router';
 import { useKey } from '../ui/hooks';
 import { sheets } from '../ui/sheets';
 import { Arrow, Close } from '../ui/icons';
 import { Linked } from '../ui/words';
 
-type Kind = 'kakera' | 'drill' | 'zukan' | 'mock';
+type Kind = 'kakera' | 'drill' | 'zukan' | 'mock' | 'set';
+/** Past this many questions the bar shows a count instead of one mark per question, and the set can end early. */
+const LONG = 20;
 interface Plan {
   kind: Kind;
   task?: Task;
@@ -33,7 +35,11 @@ interface Plan {
   scopeName: string;
 }
 
-/** Reads the route: session/task/:id, session/kakera, session/topic/:id, session/domain/:id, session/zukan/:bossId, session/mock */
+/**
+ * Reads the route: session/task/:id, session/kakera, session/topic/:id, session/domain/:id, session/zukan/:bossId,
+ * and from 問題集 (nothing locked): session/mock[/:n], session/all, session/fresh, session/miss,
+ * session/topic/:id/all, session/domain/:id/all
+ */
 function plan(pk: Pack, args: string[], date: string): Plan | string {
   const sp = progress(state.p, pk.id);
   const [what, id] = args;
@@ -71,17 +77,32 @@ function plan(pk: Pack, args: string[], date: string): Plan | string {
     const t = state.p.tasks.find((x) => x.study?.kind === 'kakera' && x.date === date && !doneOn(x, date));
     return kakeraPlan(t?.study?.count || 5, t);
   }
+  const whole = args[2] === 'all';
+  const set = (tag: string, scope: Question[], scopeName: string, qs = scope): Plan => ({ kind: 'set', tag, title: `${qs.length}問`, qs: orderSet(pk, sp, date, qs), scope, scopeName });
+  if (what === 'topic' && id && whole) {
+    const t = topicById(pk, id);
+    if (!t) return 'この単元は、いまの問題集に ありません。';
+    return set(topicShort(t), pk.questions.filter((q) => q.topicId === id), topicShort(t));
+  }
   if (what === 'topic' && id) return topicPlan(id, 3, 'drill', shortOf(id));
   if (what === 'domain' && id) {
     const n = pk.domains.findIndex((x) => x.id === id);
     if (n < 0) return 'この章は、いまの問題集に ありません。';
+    if (whole) return set(`第${n + 1}章`, domainQuestions(pk, id), pk.domains[n].name);
     const qs = pickDrill(pk, sp, date, { domainId: id }, 3);
     return { kind: 'drill', tag: `第${n + 1}章 ${pk.domains[n].name}`, title: `${qs.length}問だけ`, qs, scope: domainQuestions(pk, id), scopeName: pk.domains[n].name };
   }
   if (what === 'mock') {
-    if (!unlocked(state.p.game.lv, 'mock')) return `模試は Lv.${UNLOCK_LV.mock} で ひらきます。`;
-    const qs = pickMock(pk, 20);
+    const qs = pickMock(pk, Math.max(1, Number(id) || 20));
     return { kind: 'mock', tag: '模試', title: `${qs.length}問`, qs, scope: pk.questions, scopeName: '' };
+  }
+  if (what === 'all') return set('全問', pk.questions, '全体');
+  if (what === 'fresh' || what === 'miss') {
+    const st = qStates(pk, sp);
+    const want = what === 'fresh' ? 'new' : 'ng';
+    const qs = pk.questions.filter((q) => st.get(q.id) === want);
+    if (!qs.length) return what === 'fresh' ? '全部の問題を、一度は 解きました。' : 'まちがえた問題は、いま ありません。';
+    return set(what === 'fresh' ? 'まだ 解いていない' : 'まちがいだけ', pk.questions, '全体', qs);
   }
   if (what === 'zukan' && id) {
     const z = state.p.zukan.find((x) => x.boss.id === id);
@@ -276,9 +297,17 @@ function Questions({ pk, p, date }: { pk: Pack; p: Plan; date: string }) {
     upd({ tutorState: ok && R.tutor ? 'done' : 'fail' });
   };
 
+  const home = p.kind === 'set' || p.kind === 'mock' ? 'mondai' : 'today';
   const close = () => {
     sfx('tock');
-    back('today');
+    back(home);
+  };
+  const long = total > LONG;
+  /** A long set can stop at any question: what was answered is already recorded, so the result covers that much. */
+  const endHere = () => {
+    if (R.phase === 'res' || !R.marks.length) return;
+    abort.current?.abort();
+    finish();
   };
 
   useKey((e) => {
@@ -313,11 +342,27 @@ function Questions({ pk, p, date }: { pk: Pack; p: Plan; date: string }) {
             <Close size={16} />
           </button>
           <span class="k-sp" />
-          <span class="ss-slots" aria-label={`${total}問中 ${R.marks.length}問 済み`}>
-            {slots.map((c, i) => (
-              <i key={i} class={c} />
-            ))}
-          </span>
+          {long ? (
+            <>
+              {R.phase !== 'res' && R.marks.length > 0 && (
+                <button type="button" class="ss-end" onClick={endHere}>
+                  ここで 終える
+                </button>
+              )}
+              <span class="ss-count z-num" aria-label={`${total}問中 ${R.marks.length}問 済み`}>
+                <span class="ss-cbar" aria-hidden="true">
+                  <i style={{ width: `${(R.marks.length / total) * 100}%` }} />
+                </span>
+                <b>{R.marks.length}</b> / {total}
+              </span>
+            </>
+          ) : (
+            <span class="ss-slots" aria-label={`${total}問中 ${R.marks.length}問 済み`}>
+              {slots.map((c, i) => (
+                <i key={i} class={c} />
+              ))}
+            </span>
+          )}
         </div>
         <div class="ss-title">
           <span class="z-tag z-tag-r">{p.tag}</span>
@@ -445,10 +490,10 @@ function Questions({ pk, p, date }: { pk: Pack; p: Plan; date: string }) {
 
 /** The mock exam on the exam's scale, and how each chapter went. */
 function MockRows({ p, pk, marks, right }: { p: Plan; pk: Pack; marks: ('ok' | 'ng')[]; right: number }) {
-  const scaled = Math.round((right / Math.max(1, p.qs.length)) * pk.scoreMax);
+  const scaled = Math.round((right / Math.max(1, marks.length)) * pk.scoreMax);
   const rows = pk.domains
     .map((d, n) => {
-      const idx = p.qs.map((q, i) => (domainOf(pk, q) === d.id ? i : -1)).filter((i) => i >= 0);
+      const idx = p.qs.map((q, i) => (i < marks.length && domainOf(pk, q) === d.id ? i : -1)).filter((i) => i >= 0);
       return { n, name: d.name, asked: idx.length, ok: idx.filter((i) => marks[i] === 'ok').length };
     })
     .filter((r) => r.asked);
@@ -478,7 +523,10 @@ function MockRows({ p, pk, marks, right }: { p: Plan; pk: Pack; marks: ('ok' | '
 
 function Result({ p, pk, right, marks, xp, dmg, out, before, onClose }: { p: Plan; pk: Pack; right: number; marks: ('ok' | 'ng')[]; xp: number; dmg: number; out: Outcome | null; before: { total: number; settled: number; forecast: number }; onClose: () => void }) {
   const sp = progress(state.p, pk.id);
-  const total = p.qs.length;
+  // a long set ended early counts what was answered
+  const total = marks.length;
+  const bank = p.kind === 'set' || p.kind === 'mock';
+  const missedNow = bank ? [...qStates(pk, sp).values()].filter((s) => s === 'ng').length : 0;
   const word = WORDS.find(([r]) => right / total >= r)![1];
   const nowSettled = settled(sp, p.scope);
   const fc = forecast(pk, sp.log);
@@ -494,7 +542,7 @@ function Result({ p, pk, right, marks, xp, dmg, out, before, onClose }: { p: Pla
           {right}
           <small>/ {total}</small>
         </b>
-        <span class="ss-ress" aria-hidden="true">
+        <span class={`ss-ress${total > LONG ? ' many' : ''}`} aria-hidden="true">
           {marks.map((m, i) => (
             <i key={i} class={m} style={{ '--j': i }} />
           ))}
@@ -563,9 +611,16 @@ function Result({ p, pk, right, marks, xp, dmg, out, before, onClose }: { p: Pla
       </div>
       <div class="ss-resf">
         <span>{right < total ? '間違えた問題は、あしたの朝の欠片に まざります。' : before.settled < nowSettled ? `「${p.scopeName || '全体'}」が ${nowSettled - before.settled} 進んだ。` : 'この調子で、あしたも。'}</span>
-        <button type="button" class="z-bk" onClick={onClose}>
-          とじる
-        </button>
+        <span class="ss-resb">
+          {missedNow > 0 && (
+            <button type="button" class="z-bo2" onClick={() => go(`session/miss/${Date.now().toString(36)}`, true)}>
+              まちがいだけ {missedNow}問
+            </button>
+          )}
+          <button type="button" class="z-bk" onClick={onClose}>
+            とじる
+          </button>
+        </span>
       </div>
     </div>
   );
