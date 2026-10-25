@@ -37,7 +37,7 @@
 .zk-last.fresh { animation: zkWipe .4s 1.05s cubic-bezier(.7, 0, .2, 1) both; }
 @keyframes zkWipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
 .zk-lt { display: flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 900; letter-spacing: .14em; color: var(--r); }
-.zk-lt::after { content: ""; flex: 1; height: 1px; background: rgba(11, 11, 12, .15); }
+.zk-lt::after { content: ""; flex: 1; height: 1px; background: rgba(18, 18, 20, .15); }
 .zk-last b { display: block; margin-top: 6px; font-size: 17px; line-height: 1.6; font-weight: 800; }
 .zk-hgo { position: absolute; right: 16px; bottom: 2px; }
 
@@ -50,9 +50,9 @@
 
 /* rows: older entries */
 .zk-rows { margin-top: 8px; }
-.zk-row { position: relative; width: 100%; min-height: 112px; padding: 8px 16px 8px 8px; border: none; background: transparent; display: flex; align-items: center; gap: 10px; text-align: left; box-shadow: inset 0 -1px 0 rgba(243, 241, 236, .08); transition: background-color .15s; }
-.zk-row:hover { background: rgba(243, 241, 236, .025); }
-.zk-row:active { background: rgba(243, 241, 236, .04); }
+.zk-row { position: relative; width: 100%; min-height: 112px; padding: 8px 16px 8px 8px; border: none; background: transparent; display: flex; align-items: center; gap: 10px; text-align: left; box-shadow: inset 0 -1px 0 rgba(234, 231, 224, .08); transition: background-color .15s; }
+.zk-row:hover { background: rgba(234, 231, 224, .025); }
+.zk-row:active { background: rgba(234, 231, 224, .04); }
 .zk-row > svg { flex: none; color: var(--g3); }
 .zk-rart { flex: none; width: 104px; height: 104px; }
 .zk-rtx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
@@ -77,21 +77,21 @@
 .zk-tile.met .zk-tkj { color: var(--r); }
 .zk-tmk { position: absolute; right: 5px; top: 5px; font-style: normal; font-size: 9.5px; font-weight: 900; color: var(--k0); background: var(--w); padding: 2px 4px; line-height: 1; }
 .zk-tile.un .zk-tname { color: var(--g3); letter-spacing: .1em; }
-.zk-tinfo { justify-content: center; align-items: flex-start; gap: 8px; padding: 0 8px; background: transparent; box-shadow: inset 0 0 0 1px rgba(243, 241, 236, .14); cursor: default; }
+.zk-tinfo { justify-content: center; align-items: flex-start; gap: 8px; padding: 0 8px; background: transparent; box-shadow: inset 0 0 0 1px rgba(234, 231, 224, .14); cursor: default; }
 .zk-tinfo:hover { background: transparent; }
 .zk-tinfo b { font-size: 11.5px; font-weight: 900; line-height: 1.4; text-align: left; }
 .zk-tinfo span { font-size: 10px; font-weight: 700; line-height: 1.6; color: var(--g2); text-align: left; }
 
 /* other enemies */
 .zk-tiers { margin-top: 6px; }
-.zk-tier { margin: 0 16px; min-height: 72px; padding: 10px 0; display: flex; align-items: center; gap: 12px; box-shadow: inset 0 -1px 0 rgba(243, 241, 236, .08); }
+.zk-tier { margin: 0 16px; min-height: 72px; padding: 10px 0; display: flex; align-items: center; gap: 12px; box-shadow: inset 0 -1px 0 rgba(234, 231, 224, .08); }
 .zk-tier svg { flex: none; }
 .zk-tt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
 .zk-tt > b { font-size: 14.5px; font-weight: 700; }
 .zk-tt > span { font-size: 11.5px; font-weight: 500; line-height: 1.5; color: var(--g2); }
 .zk-tn { margin-left: 6px; font-family: 'Shippori Mincho B1', serif; font-size: 13px; font-weight: 800; color: var(--g1); }
 .zk-tt > .zk-dots { display: flex; gap: 4px; padding-left: 2px; }
-.zk-dots i { display: block; width: 6px; height: 6px; transform: rotate(45deg); box-shadow: inset 0 0 0 1px rgba(243, 241, 236, .28); }
+.zk-dots i { display: block; width: 6px; height: 6px; transform: rotate(45deg); box-shadow: inset 0 0 0 1px rgba(234, 231, 224, .28); }
 .zk-dots i.on { background: var(--r); box-shadow: none; }
 .zk-lock { flex: none; height: 22px; padding: 0 10px; font-size: 10.5px; color: var(--g1); }
 .zk-lock::before { background: #1E1E22; }
@@ -118,7 +118,7 @@
 .zk-cover.cut { pointer-events: none; color: transparent; transition: color .1s; }
 .zk-cover.cut::before { transform: translate(-30px, -14px); opacity: 0; }
 .zk-cover.cut::after { transform: translate(30px, 14px); opacity: 0; }
-.zk-cexp { margin-top: 12px; padding-top: 12px; box-shadow: inset 0 1px 0 rgba(11, 11, 12, .12); font-size: 13px; line-height: 1.75; font-weight: 500; color: #2A2A2E; }
+.zk-cexp { margin-top: 12px; padding-top: 12px; box-shadow: inset 0 1px 0 rgba(18, 18, 20, .12); font-size: 13px; line-height: 1.75; font-weight: 500; color: #2A2A2E; }
 .zk-cexp b { display: block; margin-bottom: 2px; font-size: 10.5px; font-weight: 900; letter-spacing: .14em; color: var(--r); }
 .zk-cexp p + p { margin-top: 6px; }
 .zk-cf { margin-top: 12px; display: flex; align-items: center; gap: 10px; font-size: 11.5px; font-weight: 700; color: var(--g3); }
@@ -158,10 +158,10 @@
 .zk-col.lab .zk-bv, .zk-col.on .zk-bv, .zk-col:hover .zk-bv { opacity: 1; }
 .zk-bd { position: absolute; left: 0; right: 0; bottom: 8px; text-align: center; font-size: 11px; font-weight: 700; color: var(--g2); line-height: 1; }
 .zk-col.kill .zk-bd { color: var(--r); font-weight: 900; }
-.zk-base { position: absolute; left: 0; right: 0; bottom: 29px; height: 1px; background: rgba(243, 241, 236, .3); }
+.zk-base { position: absolute; left: 0; right: 0; bottom: 29px; height: 1px; background: rgba(234, 231, 224, .3); }
 .zk-cnote { display: block; margin: 6px 16px 0; font-size: 11.5px; font-weight: 700; color: var(--g2); }
 .zk-dst { margin: 22px 16px 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.zk-dst div { display: flex; flex-direction: column; gap: 4px; padding: 12px 0; box-shadow: inset 0 -1px 0 rgba(243, 241, 236, .08); }
+.zk-dst div { display: flex; flex-direction: column; gap: 4px; padding: 12px 0; box-shadow: inset 0 -1px 0 rgba(234, 231, 224, .08); }
 .zk-dst div > span { font-size: 11px; font-weight: 900; letter-spacing: .12em; color: var(--g2); }
 .zk-dst b { font-family: 'Shippori Mincho B1', serif; font-size: 26px; line-height: 1.1; font-weight: 800; }
 .zk-dst small { margin-left: 3px; font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 12px; font-weight: 700; }
@@ -183,3 +183,5 @@
   .zk-view, .zk-new, .zk-last.fresh, .zk-split.fresh .zk-ha, .zk-split.fresh .zk-hb, .zk-split.fresh .zk-hs, .zk-det, .zk-bar { animation: none !important; }
   .zk-cover::before, .zk-cover::after { transition: none; }
 }
+.z-calm .zk-view, .z-calm .zk-new, .z-calm .zk-last.fresh, .z-calm .zk-split.fresh .zk-ha, .z-calm .zk-split.fresh .zk-hb, .z-calm .zk-split.fresh .zk-hs, .z-calm .zk-det, .z-calm .zk-bar { animation: none !important; }
+.z-calm .zk-cover::before, .z-calm .zk-cover::after { transition: none; }

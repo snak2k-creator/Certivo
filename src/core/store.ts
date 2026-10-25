@@ -40,6 +40,7 @@ export const newProfile = (): Profile => ({
   sound: true,
   haptics: true,
   ritual: true,
+  calm: false,
   lastRitual: '',
   certId: 'ai-103',
   packs: [{ certId: 'ai-103', code: 'AI-103', name: 'Azure AI Apps and Agents Developer Associate', examDate: '', status: 'studying' }],

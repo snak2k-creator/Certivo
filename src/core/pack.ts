@@ -23,6 +23,13 @@ export async function loadPack(id: string) {
   return pk;
 }
 
+/** Every certification the person has added, so a shadow or a 図鑑 page from another one still draws. */
+export async function loadPacks() {
+  for (const e of state.profile.packs) await loadPack(e.certId).catch(() => null);
+}
+
 export const activePack = () => state.packs[state.profile.certId];
+/** A certification's pack, falling back to the active one (a shadow, a 図鑑 page or a task can be from another). */
+export const packOf = (certId?: string) => (certId && state.packs[certId]) || activePack();
 export const topicById = (pk: Pack, id: string) => pk.topics.find((t) => t.id === id);
 export const questionById = (pk: Pack, id: string) => pk.questions.find((q) => q.id === id);

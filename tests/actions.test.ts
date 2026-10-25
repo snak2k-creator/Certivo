@@ -4,7 +4,7 @@ import { canUndo, state, undo } from '../src/core/store';
 import { doneOn, tasksFor } from '../src/core/tasks';
 import { THREE_BONUS } from '../src/core/game';
 import { addDays } from '../src/core/util';
-import { DAY, fresh, pack, task } from './helpers';
+import { DAY, fresh, learnt, pack, task } from './helpers';
 
 beforeEach(() => fresh());
 
@@ -96,9 +96,21 @@ describe('明日へ', () => {
 });
 
 describe('the day', () => {
-  it('sets up the shadow, the morning shards and a suggestion, all unfinished', () => {
+  it('starts with 覚える: the basic words first, and no questions before anything is learned', () => {
     ensureDay(pack, DAY);
-    expect(state.p.boss.cur).toMatchObject({ week: '2026-10-19', hp: 2000, tier: 'week' });
+    const learn = state.p.tasks.filter((t) => t.study?.kind === 'learn');
+    expect(learn).toHaveLength(1);
+    expect(learn[0]).toMatchObject({ title: '覚える：はじめの ことば', study: { lesson: 'basics' } });
+    expect(state.p.tasks.some((t) => t.study?.kind === 'kakera')).toBe(false);
+    expect(state.p.ai.sug).toBeUndefined();
+    // the shadow is born from the first lesson's topic, the one about to be learned
+    expect(state.p.boss.cur).toMatchObject({ topicId: pack.guide!.path[0], hp: 2000 });
+  });
+
+  it('sets up the shadow, the morning shards and a suggestion, all unfinished', () => {
+    learnt('basics', 't-rag');
+    ensureDay(pack, DAY);
+    expect(state.p.boss.cur).toMatchObject({ week: '2026-10-19', hp: 2000, tier: 'week', topicId: 't-rag' });
     const kakera = state.p.tasks.filter((t) => t.study?.kind === 'kakera');
     expect(kakera).toHaveLength(1);
     expect(doneOn(kakera[0], DAY)).toBe(false);
@@ -114,6 +126,7 @@ describe('the day', () => {
   });
 
   it('adds the suggestion only when accepted, as a task still to do', () => {
+    learnt('t-rag');
     ensureDay(pack, DAY);
     const n = state.p.tasks.length;
     const t = acceptSuggestion(DAY)!;
@@ -124,6 +137,7 @@ describe('the day', () => {
   });
 
   it('adds nothing when the suggestion is skipped', () => {
+    learnt('t-rag');
     ensureDay(pack, DAY);
     const n = state.p.tasks.length;
     skipSuggestion(DAY);
@@ -140,6 +154,7 @@ describe('the day', () => {
   });
 
   it('checks a study task when its session ends', () => {
+    learnt('t-rag');
     ensureDay(pack, DAY);
     const k = state.p.tasks.find((t) => t.study?.kind === 'kakera')!;
     const out = finishStudyTask(k.id, DAY)!;

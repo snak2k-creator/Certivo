@@ -3,13 +3,14 @@
 import type { FunctionComponent } from 'preact';
 import { state } from '../core/store';
 import { activePack } from '../core/pack';
+import { dueWords } from '../core/learn';
 import { chapters, target } from '../core/growth';
 import { RECAP_HOUR } from '../core/recap';
 import { DOW, dow, md } from '../core/util';
 import { dayList, doneCount, examDays, examEntry } from '../ui/derive';
 import { killedEntry } from '../ui/Boss';
 import { LvChip } from '../ui/LvChip';
-import { Account, Logo, NavBattle, NavGrowth, NavRecap, NavTasks, NavToday, NavZukan } from '../ui/icons';
+import { Account, Logo, NavBattle, NavGrowth, NavLearn, NavRecap, NavTasks, NavToday, NavZukan } from '../ui/icons';
 import type { Route } from '../ui/router';
 import { recapPointer } from '../screens/Today';
 import { switchBook } from './common';
@@ -17,6 +18,7 @@ import { switchBook } from './common';
 interface Item { r: string; label: string; icon: FunctionComponent; personal?: boolean }
 const ITEMS: Item[] = [
   { r: 'today', label: '今日', icon: NavToday },
+  { r: 'learn', label: '覚える', icon: NavLearn, personal: true },
   { r: 'battle', label: '挑む', icon: NavBattle, personal: true },
   { r: 'tasks', label: 'やること', icon: NavTasks },
   { r: 'zukan', label: '図鑑', icon: NavZukan, personal: true },
@@ -39,6 +41,12 @@ function badge(r: string, date: string, now: Date): { text: string; red?: boolea
     if (b.hp <= 0) return { text: 'とどめ', red: true };
     if (b.deadline === date) return { text: '今夜まで', red: true };
     return null;
+  }
+  if (r === 'learn') {
+    const pk = activePack();
+    const sp = pk && state.p.study[pk.id];
+    const n = pk && sp ? dueWords(pk, sp, date).length : 0;
+    return n ? { text: `復習 ${n}` } : null;
   }
   if (r === 'zukan') return state.p.zukan.length ? { text: `${state.p.zukan.length}体` } : null;
   if (r === 'recap') {

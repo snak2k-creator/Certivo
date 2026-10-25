@@ -1,5 +1,5 @@
 // 設定: the account and each notebook's sync, what may go to the AI (each off at first, with exactly what is
-// sent), the exam date, the feel (sound, vibration, the morning opening) and the records: export, import, delete.
+// sent), the certification and its exam date, the feel (sound, vibration, the morning opening) and the records: export, import, delete.
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
 import { state } from '../core/store';
@@ -12,6 +12,7 @@ import { RECAP_HOUR } from '../core/recap';
 import { buzz, sfx } from '../core/sfx';
 import { hm, md, reducedMotion } from '../core/util';
 import { toast } from '../ui/fx';
+import { openSheet } from '../ui/sheets';
 import { back } from '../ui/router';
 import { ChevL, Google } from '../ui/icons';
 
@@ -368,10 +369,19 @@ export function Settings({ args }: { args: string[] }) {
 
       {/* exam */}
       <div class="z-sec st-sec">
-        <b>試験</b>
+        <b>資格と試験</b>
         <i />
       </div>
-      {pk && <Row title={`${pk.code} · ${pk.name}`} sub={`問題集 v${pk.packVersion} · ${pk.questions.length}問 · ${pk.passingScore} / ${pk.scoreMax} で合格`} />}
+      {pk && (
+        <Row
+          title={`${pk.code} · ${pk.name}`}
+          sub={`問題集 v${pk.packVersion} · ${pk.questions.length}問${pk.terms?.length ? ` · ことば ${pk.terms.length}語` : ''} · ${pk.passingScore} / ${pk.scoreMax} で合格${pr.packs.length > 1 ? ` · 足してある資格 ${pr.packs.length}つ` : ''}`}
+        >
+          <button type="button" class="z-bo" onClick={() => openSheet({ kind: 'cert' })}>
+            切りかえる・足す
+          </button>
+        </Row>
+      )}
       {exam && (
         <Row title="試験日" sub={exam.examDate ? '朝の幕あけと 合格の見込みが、この日に 合わせます。' : '決めると、本番までの 見込みが 出ます。'}>
           <span class="st-date">
@@ -406,8 +416,11 @@ export function Settings({ args }: { args: string[] }) {
       <Row title="振動" sub="対応している 端末だけ。">
         <Switch on={pr.haptics} label="振動" onChange={(v) => setProfile({ haptics: v })} />
       </Row>
-      <Row title="朝の幕あけ" sub="その日 はじめて ひらいたときの、2秒の 演出。動きを減らす 設定の端末では 出ません。">
+      <Row title="朝の幕あけ" sub="その日 はじめて ひらいたときの、2秒の 演出。動きを 控えめに しているときは 出ません。">
         <Switch on={pr.ritual} label="朝の幕あけ" onChange={(v) => setProfile({ ritual: v })} />
+      </Row>
+      <Row title="動きを 控えめに" sub="揺れ、光、切り込みの 演出を止めて、画面の 動きを 最小にします。端末で 動きを減らす 設定に しているときも、こうなります。">
+        <Switch on={!!pr.calm} label="動きを 控えめに" onChange={(v) => setProfile({ calm: v })} />
       </Row>
 
       {/* records */}

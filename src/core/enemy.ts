@@ -85,13 +85,14 @@ function lastWords(type: EnemyType, topic: Topic) {
   return topic.examTip || topic.overview;
 }
 
-/** Makes this week's shadow on the device. The AI may later rename it and rewrite its lines (never its facts). */
-export function makeBoss(pk: Pack, sp: StudyProgress, today: string, avoidTopic?: string): Boss {
-  let topic = weakestTopic(pk, sp, today);
-  if (avoidTopic && topic.id === avoidTopic) {
-    const others = pk.topics.filter((t) => t.id !== avoidTopic);
-    topic = weakestTopic({ ...pk, topics: others }, sp, today);
-  }
+/**
+ * Makes this week's shadow on the device, from the weakest of the topics it may come from (`from`, when given:
+ * what has been learned so far). The AI may later rename it and rewrite its lines (never its facts).
+ */
+export function makeBoss(pk: Pack, sp: StudyProgress, today: string, avoidTopic?: string, from?: Set<string>): Boss {
+  const pool = from?.size ? pk.topics.filter((t) => from.has(t.id)) : pk.topics;
+  const others = pool.filter((t) => t.id !== avoidTopic);
+  const topic = weakestTopic({ ...pk, topics: others.length ? others : pool.length ? pool : pk.topics }, sp, today);
   const type = pickType(pk, sp, topic, today);
   const short = topicShort(topic);
   const misses = sp.log.filter((a) => a.d >= addDays(today, -7) && !a.ok && pk.questions.find((q) => q.id === a.q)?.topicId === topic.id).length;

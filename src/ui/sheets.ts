@@ -8,7 +8,9 @@ export type Sheet =
   | { kind: 'task'; nb: Notebook; id: string; edit?: boolean }
   | { kind: 'plan' }
   | { kind: 'nightly' }
-  | { kind: 'palette' };
+  | { kind: 'palette' }
+  | { kind: 'term'; certId: string; id: string }
+  | { kind: 'cert' };
 
 export const sheets = { now: null as Sheet | null };
 

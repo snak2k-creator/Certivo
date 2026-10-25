@@ -26,6 +26,16 @@ export function shownStreak(sp: StudyProgress, today: string) {
 
 export interface Recorded { xp: number; note: string; card: Card; firstToday: boolean }
 
+/** Counts today as a study day for the streak. True the first time today. */
+export function markStudied(sp: StudyProgress, today: string) {
+  if (sp.lastStudyDate === today) return false;
+  const gap = sp.lastStudyDate ? dayDiff(sp.lastStudyDate, today) : 99;
+  sp.streak = gap === 1 ? sp.streak + 1 : 1;
+  sp.lastStudyDate = today;
+  sp.bestStreak = Math.max(sp.bestStreak, sp.streak);
+  return true;
+}
+
 /** Updates the card, history, log and streak for one answer. Combo is the run of correct answers before this one. */
 export function recordAnswer(sp: StudyProgress, q: Question, ok: boolean, conf: Conf, ms: number, pick: string[], mode: Mode, today: string, combo: number): Recorded {
   const prev = sp.cards[q.id];
@@ -53,17 +63,25 @@ export function recordAnswer(sp: StudyProgress, q: Question, ok: boolean, conf: 
   sp.history[today] = h;
   sp.log.push({ q: q.id, d: today, ok, conf, ms: Math.round(ms), pick, mode });
   if (sp.log.length > LOG_CAP) sp.log.splice(0, sp.log.length - LOG_CAP);
-  let firstToday = false;
-  if (sp.lastStudyDate !== today) {
-    firstToday = true;
-    const gap = sp.lastStudyDate ? dayDiff(sp.lastStudyDate, today) : 99;
-    sp.streak = gap === 1 ? sp.streak + 1 : 1;
-    sp.lastStudyDate = today;
-    sp.bestStreak = Math.max(sp.bestStreak, sp.streak);
-  }
+  const firstToday = markStudied(sp, today);
   let xp = ok ? (conf === 'sure' ? 15 : conf === 'maybe' ? 10 : 5) : 2;
   if (ok) xp += Math.min(10, Math.max(0, combo) * 2);
   return { xp, note, card: c, firstToday };
+}
+
+/**
+ * The tag on a question that comes back after a miss or a guess, from the last time it was asked: 今日 / 昨日 /
+ * 前に まちがえた (or 迷った). Read it before the session logs its own answers.
+ */
+export function backTag(sp: StudyProgress, qId: string, today: string) {
+  for (let i = sp.log.length - 1; i >= 0; i--) {
+    const a = sp.log[i];
+    if (a.q !== qId) continue;
+    if (a.ok && a.conf !== 'guess') return '';
+    const when = a.d === today ? '今日' : a.d === addDays(today, -1) ? '昨日' : '前に';
+    return `${when} ${a.ok ? '迷った' : 'まちがえた'}`;
+  }
+  return '';
 }
 
 /* ---------- statistics ---------- */
@@ -149,15 +167,19 @@ function weakness(sp: StudyProgress, q: Question, today: string) {
   return (1 - acc) * 2 + due * 1.5 + (5 - c.box) * 0.3 + (c.lastConf === 'guess' ? 0.6 : 0);
 }
 
-/** Morning shards: due cards first, then weak ones, then new ones spread by exam weight. */
-export function pickKakera(pk: Pack, sp: StudyProgress, today: string, n = 5) {
-  const due = pk.questions.filter((q) => sp.cards[q.id] && sp.cards[q.id].due <= today).sort((a, b) => sp.cards[a.id].box - sp.cards[b.id].box);
-  const weak = pk.questions.filter((q) => {
+/**
+ * Morning shards: due cards first, then weak ones, then new ones spread by exam weight. With `open` (the topics
+ * learned so far), only those topics' questions are asked.
+ */
+export function pickKakera(pk: Pack, sp: StudyProgress, today: string, n = 5, open?: Set<string>) {
+  const pool = open?.size ? pk.questions.filter((q) => open.has(q.topicId)) : pk.questions;
+  const due = pool.filter((q) => sp.cards[q.id] && sp.cards[q.id].due <= today).sort((a, b) => sp.cards[a.id].box - sp.cards[b.id].box);
+  const weak = pool.filter((q) => {
     const c = sp.cards[q.id];
     return c && c.due > today && c.seen > 0 && c.correct / c.seen < 0.7;
   });
   const fresh: Question[] = [];
-  const pools = pk.domains.map((d) => shuffle(domainQuestions(pk, d.id).filter((q) => !sp.cards[q.id])));
+  const pools = pk.domains.map((d) => shuffle(domainQuestions(pk, d.id).filter((q) => !sp.cards[q.id] && pool.includes(q))));
   const weights = pk.domains.map((d) => (d.weightMin + d.weightMax) / 2);
   const credit = weights.map(() => 0);
   while (pools.some((l) => l.length) && fresh.length < n) {
@@ -174,7 +196,10 @@ export function pickKakera(pk: Pack, sp: StudyProgress, today: string, n = 5) {
   weak.forEach(push);
   due.forEach(push);
   fresh.forEach(push);
-  shuffle(pk.questions).forEach(push);
+  // when the learned topics run short, the questions asked longest ago fill in, not the ones just answered
+  shuffle(pool)
+    .sort((a, b) => (sp.cards[a.id]?.lastAt ?? '').localeCompare(sp.cards[b.id]?.lastAt ?? ''))
+    .forEach(push);
   return out;
 }
 
@@ -187,23 +212,29 @@ export function pickMock(pk: Pack, n = 20) {
   const raw = weights.map((w) => (w / sum) * want);
   const take = raw.map((r, i) => Math.min(pools[i].length, Math.floor(r)));
   const order = raw.map((_, i) => i).sort((a, b) => (raw[b] - Math.floor(raw[b])) - (raw[a] - Math.floor(raw[a])));
-  for (let k = 0; take.reduce((a, t) => a + t, 0) < want && k < order.length * 4; k++) {
-    const i = order[k % order.length];
-    if (take[i] < pools[i].length) take[i]++;
+  // the rest goes round the domains that still have questions, the largest remainders first
+  for (let left = want - take.reduce((a, t) => a + t, 0); left > 0; ) {
+    const room = order.filter((i) => take[i] < pools[i].length);
+    if (!room.length) break;
+    for (const i of room) {
+      if (!left) break;
+      take[i]++;
+      left--;
+    }
   }
   return shuffle(pools.flatMap((l, i) => l.slice(0, take[i])));
 }
 
-/** Questions for a short drill in a topic or a domain, weakest first. */
+/** Questions for a short drill in a topic or a domain, weakest first. A small topic is filled from its domain, after its own. */
 export function pickDrill(pk: Pack, sp: StudyProgress, today: string, scope: { topicId?: string; domainId?: string }, n = 3) {
-  let qs = scope.topicId ? pk.questions.filter((q) => q.topicId === scope.topicId) : scope.domainId ? domainQuestions(pk, scope.domainId) : pk.questions;
+  const weakFirst = (qs: Question[]) => shuffle(qs).sort((a, b) => weakness(sp, b, today) - weakness(sp, a, today));
+  const own = scope.topicId ? pk.questions.filter((q) => q.topicId === scope.topicId) : scope.domainId ? domainQuestions(pk, scope.domainId) : pk.questions;
+  let qs = weakFirst(own);
   if (qs.length < n && scope.topicId) {
     const d = pk.topics.find((t) => t.id === scope.topicId)?.domainId;
-    if (d) qs = qs.concat(domainQuestions(pk, d).filter((q) => !qs.includes(q)));
+    if (d) qs = qs.concat(weakFirst(domainQuestions(pk, d).filter((q) => !own.includes(q))));
   }
-  return shuffle(qs)
-    .sort((a, b) => weakness(sp, b, today) - weakness(sp, a, today))
-    .slice(0, n);
+  return qs.slice(0, n);
 }
 
 /** Wrong answers yesterday per topic: the basis of "きのう 2回 迷ったところ". */

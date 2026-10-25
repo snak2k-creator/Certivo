@@ -3,32 +3,34 @@
 import type { EnemyType } from '../core/types';
 import { esc, seeded } from '../core/util';
 
-const K0 = '#0B0B0C';
-const K1 = '#0E0E10';
-const K2 = '#131315';
-const K3 = '#18181B';
-const K4 = '#1D1D20';
-const W = '#F3F1EC';
-const R = '#E3402B';
+const K0 = '#121214';
+const K1 = '#151517';
+const K2 = '#1A1A1C';
+const K3 = '#1F1F22';
+const K4 = '#242427';
+const W = '#E6E2DA';
+const R = '#D04D3A';
+/** the big core disk: deeper than the accent red, so a large area of it stays easy on the eyes */
+const RD = '#AE3E2E';
 const MIN = `font-family="'Shippori Mincho B1',serif" font-weight="800"`;
 
 type Pt = [number, number];
 const f = (n: number) => n.toFixed(1);
 const i = (n: number) => String(Math.trunc(n));
 const rad = (a: number) => (a * Math.PI) / 180;
-const rim = (a = 0.55, w = 1) => `stroke="rgba(243,241,236,${a})" stroke-width="${w}"`;
+const rim = (a = 0.55, w = 1) => `stroke="rgba(234,231,224,${a})" stroke-width="${w}"`;
 const P = (seq: Pt[]) => seq.map(([x, y]) => `${f(x)},${f(y)}`).join(' ');
 const poly = (seq: Pt[], fill: string, extra = '') => `<polygon points="${P(seq)}" fill="${fill}" ${extra}/>`;
 const mir = (seq: Pt[], cx = 160): Pt[] => seq.map(([x, y]) => [2 * cx - x, y]);
 
 function kanji(ch: string, x: number, y: number, size: number, rot = 0, op = 0.06) {
   const t = rot ? ` transform="rotate(${i(rot)} ${i(x)} ${i(y)})"` : '';
-  return `<text x="${i(x)}" y="${i(y)}" text-anchor="middle" dominant-baseline="central" font-size="${i(size)}" fill="rgba(243,241,236,${op})" ${MIN}${t}>${ch}</text>`;
+  return `<text x="${i(x)}" y="${i(y)}" text-anchor="middle" dominant-baseline="central" font-size="${i(size)}" fill="rgba(234,231,224,${op})" ${MIN}${t}>${ch}</text>`;
 }
 
 function eye(x: number, y: number, w: number, h: number, cls = '', pupil = true, rot = 0) {
   const t = rot ? ` transform="rotate(${i(rot)} ${f(x)} ${f(y)})"` : '';
-  let s = `<g class="${cls}"${t}><path d="M${f(x)} ${f(y - h / 2)}Q${f(x + w / 2 + 2)} ${f(y)} ${f(x)} ${f(y + h / 2)}Q${f(x - w / 2 - 2)} ${f(y)} ${f(x)} ${f(y - h / 2)}Z" fill="${R}" stroke="rgba(243,241,236,.8)" stroke-width=".9"/>`;
+  let s = `<g class="${cls}"${t}><path d="M${f(x)} ${f(y - h / 2)}Q${f(x + w / 2 + 2)} ${f(y)} ${f(x)} ${f(y + h / 2)}Q${f(x - w / 2 - 2)} ${f(y)} ${f(x)} ${f(y - h / 2)}Z" fill="${R}" stroke="rgba(234,231,224,.8)" stroke-width=".9"/>`;
   if (pupil) s += `<path d="M${f(x)} ${f(y - h / 2 + 3)}V${f(y + h / 2 - 3)}" stroke="${K0}" stroke-width="${f(Math.max(1.4, w / 6))}" stroke-linecap="round"/>`;
   return s + '</g>';
 }
@@ -57,7 +59,7 @@ export function bakusa(o: BakusaOpts = {}) {
   const ids = o.ids ?? ['p1', 'p2', 'p3', 'p4'];
   const gone = o.gone ?? [];
   const scars = o.scars ?? 0;
-  const out = [kanji('鎖', 168, 168, 300, 0, 0.05), `<circle cx="160" cy="146" r="94" fill="${R}"/>`, ring(160, 146, 116, 0.16), ring(160, 146, 126, 0.1, 1, '2 6'), `<path d="M160 0V320" ${rim(0.08)}/>`];
+  const out = [kanji('鎖', 168, 168, 300, 0, 0.05), `<circle cx="160" cy="146" r="94" fill="${RD}"/>`, ring(160, 146, 116, 0.16), ring(160, 146, 126, 0.1, 1, '2 6'), `<path d="M160 0V320" ${rim(0.08)}/>`];
   const erx = 128, ery = 46, tilt = -13, ocx = 160, ocy = 182;
   const ept = (t: number): Pt => {
     const x = erx * Math.cos(rad(t));
@@ -147,7 +149,7 @@ export function bakusaPlates(): Record<'p1' | 'p2' | 'p3' | 'p4', Pt> {
 /* ---------------------------------------------------------------- 双影: the twins (weak point: telling two apart) */
 export function souei(a = 'LLM', b = 'SLM') {
   const o = [kanji('双', 160, 170, 300, 0, 0.05)];
-  o.push(`<path d="M160 52A100 100 0 0 0 160 252Z" fill="${R}" transform="translate(-4 -12)"/>`);
+  o.push(`<path d="M160 52A100 100 0 0 0 160 252Z" fill="${RD}" transform="translate(-4 -12)"/>`);
   o.push(`<path d="M160 52A100 100 0 0 1 160 252" fill="none" ${rim(0.55, 1.2)} transform="translate(4 12)"/>`);
   let marks = '';
   for (let y = 30; y < 300; y += 18) marks += `<path d="M154 ${y}H166" ${rim(0.3)}/>`;
@@ -158,15 +160,15 @@ export function souei(a = 'LLM', b = 'SLM') {
     const g = [`<g transform="rotate(${lean} ${cx} ${mid})">`];
     g.push(poly([[cx, top], [cx - hw, mid], [cx, bot]], W));
     g.push(poly([[cx, top], [cx + hw, mid], [cx, bot]], '#D9D6CF'));
-    g.push(`<path d="M${cx} ${top}V${bot}" stroke="rgba(11,11,12,.2)" stroke-width="1"/>`);
+    g.push(`<path d="M${cx} ${top}V${bot}" stroke="rgba(18,18,20,.2)" stroke-width="1"/>`);
     for (const n of [1, 2, 3]) {
       const yy = mid - 30 * n;
       const ww = hw * (1 - (30 * n) / (mid - top));
-      g.push(`<path d="M${f(cx - ww)} ${f(yy)}L${cx} ${f(yy + 6)}L${f(cx + ww)} ${f(yy)}" fill="none" stroke="rgba(11,11,12,.16)" stroke-width="1"/>`);
+      g.push(`<path d="M${f(cx - ww)} ${f(yy)}L${cx} ${f(yy + 6)}L${f(cx + ww)} ${f(yy)}" fill="none" stroke="rgba(18,18,20,.16)" stroke-width="1"/>`);
     }
     if (real) g.push(eye(cx, mid - 2, 11, 34, 'so-eye'));
     else g.push(`<path d="M${cx} ${f(mid - 19)}Q${f(cx + 7.5)} ${f(mid - 2)} ${cx} ${f(mid + 15)}Q${f(cx - 7.5)} ${f(mid - 2)} ${cx} ${f(mid - 19)}Z" fill="none" stroke="${K0}" stroke-width="1.6"/>`);
-    g.push(`<text x="${cx}" y="${mid + 64}" text-anchor="middle" font-size="10" letter-spacing=".16em" fill="rgba(11,11,12,.62)" ${MIN}>${esc(label)}</text>`);
+    g.push(`<text x="${cx}" y="${mid + 64}" text-anchor="middle" font-size="10" letter-spacing=".16em" fill="rgba(18,18,20,.62)" ${MIN}>${esc(label)}</text>`);
     g.push('</g>');
     return g.join('');
   };
@@ -178,7 +180,7 @@ export function souei(a = 'LLM', b = 'SLM') {
 
 /* ---------------------------------------------------------------- 逆吊: the hanging spire (weak point: negation) */
 export function sakazuri(word = 'ではない') {
-  const o = [kanji('逆', 160, 150, 290, 180, 0.05), `<circle cx="160" cy="318" r="112" fill="${R}"/>`, ring(160, 318, 132, 0.14)];
+  const o = [kanji('逆', 160, 150, 290, 180, 0.05), `<circle cx="160" cy="318" r="112" fill="${RD}"/>`, ring(160, 318, 132, 0.14)];
   o.push(`<path d="M118 0L148 46M202 0L172 46M160 0V40" ${rim(0.4)}/>`);
   const g: string[] = [];
   const bands = 8, top = 42, tip = 286;
@@ -194,7 +196,7 @@ export function sakazuri(word = 'ではない') {
     if (k === 1 || k === 3 || k === 5) g.push(`<path d="M${f(160 - w2 + 4)} ${f(y2 + 6)}L160 ${f(y2 + 13)}L${f(160 + w2 - 4)} ${f(y2 + 6)}" fill="none" stroke="${R}" stroke-width="2" stroke-dasharray="2 3.2"/>`);
   }
   g.push(poly([[151, tip - 30], [169, tip - 30], [160, tip + 8]], W));
-  g.push(`<text x="160" y="70" text-anchor="middle" font-size="12.5" letter-spacing=".24em" fill="rgba(243,241,236,.85)" ${MIN} transform="rotate(180 160 66)">${esc(word)}</text>`);
+  g.push(`<text x="160" y="70" text-anchor="middle" font-size="12.5" letter-spacing=".24em" fill="rgba(234,231,224,.85)" ${MIN} transform="rotate(180 160 66)">${esc(word)}</text>`);
   g.push(eye(160, 214, 12, 30, 'sk-eye', true, 180));
   g.push(`<path d="M160 296V318" ${rim(0.5)}/>`);
   o.push(`<g class="sk-body">${g.join('')}</g>`);
@@ -219,7 +221,7 @@ export function muchu() {
       const gap = pick([6, 10, 16, 28]);
       let a = 0.1 + 0.1 * rnd();
       if (inside && Math.abs(x + ww / 2 - 160) < half + 30) a = 0.05;
-      lines.push(`<rect x="${f(x)}" y="${f(y)}" width="${ww}" height="1.6" fill="rgba(243,241,236,${a.toFixed(2)})"/>`);
+      lines.push(`<rect x="${f(x)}" y="${f(y)}" width="${ww}" height="1.6" fill="rgba(234,231,224,${a.toFixed(2)})"/>`);
       x += ww + gap;
     }
   }
@@ -236,7 +238,7 @@ export function muchu() {
       const ih = Math.sqrt(ir * ir - dy * dy);
       bars.push(`<rect x="${f(160 - ih)}" y="${f(y - 2.2)}" width="${f(ih * 2)}" height="4.4" fill="${R}"/>`);
     }
-    bars.push(`<rect x="${f(160 - half)}" y="${f(y - 2.2)}" width="${f(half * 2)}" height=".8" fill="rgba(243,241,236,.35)"/>`);
+    bars.push(`<rect x="${f(160 - half)}" y="${f(y - 2.2)}" width="${f(half * 2)}" height=".8" fill="rgba(234,231,224,.35)"/>`);
   }
   o.push(`<g class="mu-eye">${bars.join('')}</g>`);
   o.push(`<path d="M${160 - ex - 6} ${cy}Q160 ${cy - 92} ${160 + ex + 6} ${cy}Q160 ${cy + 92} ${160 - ex - 6} ${cy}Z" fill="none" ${rim(0.7, 1.2)}/>`);
@@ -248,7 +250,7 @@ export function muchu() {
 /* ---------------------------------------------------------------- 驕慢: the crowned mirror (weak point: overconfidence) */
 export function kyoman() {
   const cx = 160, cy = 122;
-  const o = [kanji('驕', 160, 176, 290, 0, 0.05), `<circle cx="${cx}" cy="${cy}" r="92" fill="${R}"/>`];
+  const o = [kanji('驕', 160, 176, 290, 0, 0.05), `<circle cx="${cx}" cy="${cy}" r="92" fill="${RD}"/>`];
   const sw: string[] = [];
   for (let n = 0; n < 36; n++) {
     const a = -90 + n * 10;
@@ -284,11 +286,11 @@ export function kyoman() {
       poly([[160, 62], [184, 70], [199, 96], [198, 128], [160, 118]], '#D5D1C9'),
       poly([[122, 128], [134, 156], [160, 188], [160, 140]], '#ECE9E3'),
       poly([[198, 128], [186, 156], [160, 188], [160, 140]], '#BDB8AF'),
-      '<path d="M160 62V188M121 96L160 104L199 96" fill="none" stroke="rgba(11,11,12,.16)" stroke-width="1"/>',
-      '<path d="M122 128L160 140L198 128" fill="none" stroke="rgba(11,11,12,.22)" stroke-width="1"/>',
+      '<path d="M160 62V188M121 96L160 104L199 96" fill="none" stroke="rgba(18,18,20,.16)" stroke-width="1"/>',
+      '<path d="M122 128L160 140L198 128" fill="none" stroke="rgba(18,18,20,.22)" stroke-width="1"/>',
       `<path d="M118 112L160 121L202 112" fill="none" stroke="${R}" stroke-width="3.4" stroke-linejoin="miter"/>`,
       '<path d="M124 112.6L160 120.4L196 112.6" fill="none" stroke="rgba(255,255,255,.55)" stroke-width=".8"/>',
-      poly(face, 'none', 'stroke="rgba(11,11,12,.5)" stroke-width="1"'),
+      poly(face, 'none', 'stroke="rgba(18,18,20,.5)" stroke-width="1"'),
       '</g>',
     ].join(''),
   );
@@ -300,7 +302,7 @@ export function zanzo() {
   const o = [kanji('残', 160, 166, 300, 0, 0.05)];
   const ghosts: [number, number][] = [[4, 0.1], [3, 0.16], [2, 0.26], [1, 0.4]];
   for (const [k, a] of ghosts) o.push(ring(196 - 26 * k, 150, 84, a, 1.2));
-  o.push(`<circle cx="196" cy="150" r="84" fill="${R}"/>`);
+  o.push(`<circle cx="196" cy="150" r="84" fill="${RD}"/>`);
   const streaks: [number, number, number, number][] = [[8, 92, 120, 0.25], [20, 132, 96, 0.18], [0, 206, 140, 0.22], [30, 246, 110, 0.16], [12, 282, 150, 0.2]];
   o.push(streaks.map(([x1, y, x2, a]) => `<path d="M${x1} ${y}H${x2}" ${rim(a)}/>`).join(''));
   const top = 24, bot = 304, mid = 150, hw = 30;
@@ -323,7 +325,7 @@ export function zanzo() {
 /* ---------------------------------------------------------------- 刻限: the reaper dial (weak point: pace) */
 export function kokugen() {
   const cx = 160, cy = 160;
-  const o = [kanji('刻', 160, 170, 300, 0, 0.05), `<circle cx="${cx}" cy="${cy}" r="104" fill="${R}"/>`];
+  const o = [kanji('刻', 160, 170, 300, 0, 0.05), `<circle cx="${cx}" cy="${cy}" r="104" fill="${RD}"/>`];
   o.push(`<path d="M${cx} ${cy}L${cx} ${cy - 104}A104 104 0 0 1 ${f(cx + 104 * Math.cos(rad(-10)))} ${f(cy + 104 * Math.sin(rad(-10)))}Z" fill="${K1}" opacity=".9" class="kg-wedge"/>`);
   o.push(ticks(cx, cy, 122, 132, 60, 0.3, 1, -90, 360, 5, 112));
   o.push(ring(cx, cy, 140, 0.16) + ring(cx, cy, 148, 0.1, 1, '1 5'));
@@ -364,7 +366,7 @@ export function kakera() {
 
 /* ---------------------------------------------------------------- 関門: the gate (the mock exam) */
 export function kanmon(code = 'AI-103') {
-  const o = [kanji('門', 160, 172, 300, 0, 0.05), `<circle cx="160" cy="172" r="128" fill="${R}"/>`, ring(160, 172, 146, 0.14)];
+  const o = [kanji('門', 160, 172, 300, 0, 0.05), `<circle cx="160" cy="172" r="128" fill="${RD}"/>`, ring(160, 172, 146, 0.14)];
   o.push(`<path d="M86 20V306M234 20V306" ${rim(0.25)}/>`);
   o.push(poly([[122, 18], [160, 18], [160, 306], [112, 306]], K3));
   o.push(poly([[160, 18], [198, 18], [208, 306], [160, 306]], K2));
@@ -373,7 +375,7 @@ export function kanmon(code = 'AI-103') {
   for (let y = 44; y < 300; y += 22) rungs += `<path d="M${f(122 - ((y - 18) * 10) / 288 + 3)} ${y}H${f(198 + ((y - 18) * 10) / 288 - 3)}" ${rim(0.08)}/>`;
   o.push(rungs);
   o.push(`<g class="km-slit"><rect x="157" y="52" width="6" height="226" fill="${R}"/><path d="M160 52V278" stroke="${W}" stroke-width="1.1"/></g>`);
-  o.push(`<text x="160" y="296" text-anchor="middle" font-size="11" letter-spacing=".22em" fill="rgba(243,241,236,.72)" ${MIN}>${esc(code)}</text>`);
+  o.push(`<text x="160" y="296" text-anchor="middle" font-size="11" letter-spacing=".22em" fill="rgba(234,231,224,.72)" ${MIN}>${esc(code)}</text>`);
   const icons = [
     `<path d="M-6 -6h12v12h-12zM-6 0h12M0 -6v12" fill="none" stroke="${W}" stroke-width="1.3"/>`,
     `<path d="M-6 5L0 -6L6 5Z" fill="none" stroke="${W}" stroke-width="1.1"/><circle cx="-6" cy="5" r="2.1" fill="${W}"/><circle cx="0" cy="-6" r="2.1" fill="${W}"/><circle cx="6" cy="5" r="2.1" fill="${W}"/>`,

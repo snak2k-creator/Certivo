@@ -8,6 +8,10 @@ import { sfx } from '../core/sfx';
 import { closeSheet, sheets, type Sheet } from './sheets';
 import { useKey, useKeyboardInset, useScrollLock } from './hooks';
 import { AddForm, TaskDetail } from './TaskForms';
+import { TermSheet } from './words';
+import { CertPick } from './CertPick';
+import { packOf } from '../core/pack';
+import { BASICS, lessonShort } from '../core/learn';
 import { PlanConfirm } from './WorkPlan';
 import { Close } from './icons';
 import { toast } from './fx';
@@ -98,6 +102,13 @@ function Drawer({ label, tag, onClose, children }: { label: string; tag?: string
   );
 }
 
+/** A word's sheet is tagged with its lesson. */
+function termTag(certId: string, id: string) {
+  const pk = packOf(certId);
+  const t = pk?.terms?.find((x) => x.id === id);
+  return pk && t ? lessonShort(pk, t.topicId ?? BASICS) : 'ことば';
+}
+
 /** Writing for another day says which day, so the line is read from there. */
 function addTag(s: Extract<Sheet, { kind: 'add' }>) {
   const book = s.nb === 'p' ? '個人の手帳' : '仕事の手帳';
@@ -114,6 +125,10 @@ function body(s: Sheet) {
       return { label: '送る前の確認', tag: undefined, node: <PlanConfirm /> };
     case 'nightly':
       return { label: '毎晩のまとめ', tag: 'はじめに、ひとつだけ', node: <NightlyAsk onDone={closeSheet} /> };
+    case 'term':
+      return { label: 'ことば', tag: termTag(s.certId, s.id), node: <TermSheet certId={s.certId} id={s.id} today={today()} /> };
+    case 'cert':
+      return { label: '資格', tag: '資格を えらぶ', node: <CertPick onDone={closeSheet} /> };
     default:
       return null;
   }
@@ -134,7 +149,7 @@ export function SheetHost({ pc = false }: { pc?: boolean }) {
     );
   }
   return (
-    <SheetFrame key={s.kind + ('id' in s ? s.id : '')} label={b.label} tag={b.tag} onClose={closeSheet}>
+    <SheetFrame key={s.kind + ('id' in s ? s.id : '')} label={b.label} tag={b.tag} onClose={closeSheet} wide={s.kind === 'term'}>
       {b.node}
     </SheetFrame>
   );

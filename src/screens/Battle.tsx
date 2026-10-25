@@ -4,15 +4,15 @@
 // Damage stays even if you stop halfway.
 import { Fragment } from 'preact';
 import { useEffect, useLayoutEffect, useReducer, useRef, useState } from 'preact/hooks';
-import type { Boss, Conf, Pack, Question, Topic } from '../core/types';
+import type { Boss, Conf, Pack, Topic } from '../core/types';
 import { state } from '../core/store';
 import { DEFEAT_XP, answer, bossBattleStarted, bossHit, bossMiss, defeatBoss, logFight } from '../core/actions';
 import { BATTLE_QUESTIONS, ENEMY, PLATE_DAMAGE, battleDamage, isCrit, topicShort, weekNumber } from '../core/enemy';
-import { isCorrect, pickDrill, progress } from '../core/study';
-import { activePack, questionById, topicById } from '../core/pack';
+import { backTag, isCorrect, pickDrill, progress } from '../core/study';
+import { packOf, questionById, topicById } from '../core/pack';
 import { levelFromTotal, need, title } from '../core/game';
 import { BUZZ, buzz, sfx } from '../core/sfx';
-import { addDays, clamp, hashStr, reducedMotion, seeded, shuffle } from '../core/util';
+import { clamp, hashStr, reducedMotion, seeded, shuffle } from '../core/util';
 import { bakusaPlates } from '../art/enemies';
 import { BossArt, bossWhen, killedEntry } from '../ui/Boss';
 import { firstWeek } from '../ui/derive';
@@ -38,6 +38,8 @@ interface Fight {
   queue: string[];
   /** which first-time question each queue entry belongs to (revenge repeats one) */
   slotOf: number[];
+  /** how each question went the last time, read when the fight starts (今日 まちがえた …) */
+  backs: Record<string, string>;
   marks: ('' | 'ok' | 'ng')[];
   revenge: number;
   qi: number;
@@ -87,6 +89,7 @@ const newFight = (hp: number): Fight => ({
   phase: 'intro',
   queue: [],
   slotOf: [],
+  backs: {},
   marks: [],
   revenge: 0,
   qi: 0,
@@ -173,11 +176,6 @@ const elapsed = (ms: number) => {
   return (secs >= 60 ? `${Math.floor(secs / 60)}分` : '') + `${secs % 60}秒`;
 };
 
-function weakYesterday(pk: Pack, q: Question, date: string) {
-  const y = addDays(date, -1);
-  return progress(state.p, pk.id).log.some((a) => a.q === q.id && a.d === y && (!a.ok || a.conf === 'guess'));
-}
-
 /** The chips are dealt from the boss and the battle number, so they never start in the right order. */
 function dealChips(b: Boss): PlateId[] {
   const ids = shuffle(PLATES, seeded(hashStr(b.id) + b.battles * 7919));
@@ -210,8 +208,8 @@ function Empty({ head, sub, zukan }: { head: string; sub: string; zukan?: string
 }
 
 export function Battle({ date }: { date: string }) {
-  const pk = activePack();
   const b = state.p.boss.cur;
+  const pk = packOf(b?.certId);
   const deadAtStart = useRef(killedEntry(b));
   if (!b) return <Empty head="まだ 姿がない。" sub="問題集を 読みこむと、弱点から 生まれます。" />;
   if (deadAtStart.current) return <Empty head={`${b.name}は、もう 図鑑の中。`} sub="次の影は、月曜に 生まれる。" zukan={b.id} />;
@@ -326,8 +324,10 @@ function Fighting({ pk, b, date }: { pk: Pack; b: Boss; date: string }) {
       toCore();
       return;
     }
-    const qs = pickDrill(pk, progress(state.p, pk.id), date, { topicId: b.topicId }, base);
-    Object.assign(F, { queue: qs.map((x) => x.id), slotOf: qs.map((_, i) => i), marks: qs.map(() => ''), t0: now });
+    const sp = progress(state.p, pk.id);
+    const qs = pickDrill(pk, sp, date, { topicId: b.topicId }, base);
+    const backs = Object.fromEntries(qs.map((x) => [x.id, backTag(sp, x.id, date)]));
+    Object.assign(F, { queue: qs.map((x) => x.id), slotOf: qs.map((_, i) => i), backs, marks: qs.map(() => ''), t0: now });
     if (!qs.length) afterQuestions();
     else showQ(0);
   };
@@ -794,7 +794,7 @@ function Fighting({ pk, b, date }: { pk: Pack; b: Boss; date: string }) {
               <div key={`q${F.qi}`} class="k-qin">
                 <div class="k-qh">
                   <span class="z-tag z-tag-k">{revenge ? 'リベンジ' : `第${slot + 1}問`}</span>
-                  {!revenge && weakYesterday(pk, q, date) && <span class="z-tag z-tag-r">昨日迷った</span>}
+                  {!revenge && F.backs[q.id] && <span class="z-tag z-tag-r">{F.backs[q.id]}</span>}
                   {multi && <span class="k-mtag">{q.answer.length}つ えらぶ</span>}
                   <span class="k-sp" />
                   {ph === 'q' && (

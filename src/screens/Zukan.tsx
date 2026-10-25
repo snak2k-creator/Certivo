@@ -4,7 +4,7 @@ import { useState } from 'preact/hooks';
 import type { Boss, EnemyType, Pack, ZukanEntry } from '../core/types';
 import { state } from '../core/store';
 import { mixIntoKakera } from '../core/actions';
-import { activePack, topicById } from '../core/pack';
+import { activePack, packOf, topicById } from '../core/pack';
 import { accuracy } from '../core/study';
 import { ENEMY, ENEMY_ORDER, TYPE_INFO, topicShort, weekNumber } from '../core/enemy';
 import { UNLOCK_LV, unlocked } from '../core/game';
@@ -61,7 +61,7 @@ function SplitArt({ b, size, fresh, k = '' }: { b: Pick<Boss, 'id' | 'type' | 't
     `<clipPath id="${id}b" clipPathUnits="userSpaceOnUse"><polygon points="-40,207 360,113 360,360 -40,360"/></clipPath></defs>` +
     `<g class="zk-ha"><g clip-path="url(#${id}a)"><use href="#${id}" width="320" height="320"/></g></g>` +
     `<g class="zk-hb"><g clip-path="url(#${id}b)"><use href="#${id}" width="320" height="320"/></g></g>` +
-    `<g class="zk-hs"><path d="M-30 212L350 122" stroke="#E3402B" stroke-width="5"/><path d="M-30 212L350 122" stroke="#FFF" stroke-width="1.6"/></g>`;
+    `<g class="zk-hs"><path d="M-30 212L350 122" stroke="#D04D3A" stroke-width="5"/><path d="M-30 212L350 122" stroke="#FFF" stroke-width="1.6"/></g>`;
   return <svg class={`zk-split${fresh ? ' fresh' : ''}`} viewBox="0 0 320 320" width={size} height={size} aria-hidden="true" style={{ overflow: 'visible' }} dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
@@ -76,7 +76,7 @@ function Defs() {
       <defs>
         <filter id="zk-sil" x="-6%" y="-6%" width="112%" height="112%" color-interpolation-filters="sRGB">
           <feMorphology in="SourceAlpha" operator="dilate" radius="2.4" result="d" />
-          <feFlood flood-color="#F3F1EC" flood-opacity=".2" />
+          <feFlood flood-color="#E6E2DA" flood-opacity=".2" />
           <feComposite in2="d" operator="in" result="edge" />
           <feFlood flood-color="#1B1B1E" />
           <feComposite in2="SourceAlpha" operator="in" result="body" />
@@ -316,7 +316,7 @@ function Book({ date, sel }: { date: string; sel?: string }) {
           </div>
         </div>
       ) : (
-        <LastWords list={list} pk={pk} lv={lv} />
+        <LastWords list={list} lv={lv} />
       )}
 
       {peek && <Peek type={peek} met={met.has(peek)} onClose={() => setPeek(null)} />}
@@ -324,11 +324,10 @@ function Book({ date, sel }: { date: string; sel?: string }) {
   );
 }
 
-function LastWords({ list, pk, lv }: { list: ZukanEntry[]; pk: Pack | undefined; lv: number }) {
+function LastWords({ list, lv }: { list: ZukanEntry[]; lv: number }) {
   const [hide, setHide] = useState(false);
   const [rev, setRev] = useState<Record<string, boolean>>({});
   const can = unlocked(lv, 'recall');
-  const sp = pk ? state.p.study[pk.id] : undefined;
   if (!list.length) {
     return (
       <div class="zk-view" key="last">
@@ -362,6 +361,8 @@ function LastWords({ list, pk, lv }: { list: ZukanEntry[]; pk: Pack | undefined;
         )}
       </div>
       {list.map((z) => {
+        const pk = packOf(z.boss.certId);
+        const sp = pk ? state.p.study[pk.id] : undefined;
         const qs = pk ? pk.questions.filter((q) => q.topicId === z.boss.topicId) : [];
         const acc = sp ? accuracy(sp, qs) : null;
         const shown = !hide || rev[z.boss.id];
@@ -440,8 +441,8 @@ function Peek({ type, met, onClose }: { type: EnemyType; met: boolean; onClose: 
 function Entry({ z, date }: { z: ZukanEntry; date: string }) {
   const [bar, setBar] = useState(-1);
   const p = state.p;
-  const pk = activePack();
   const b = z.boss;
+  const pk = packOf(b.certId);
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart(b.week), i));
   const vals = days.map((d) => (d <= z.at ? p.days[d]?.dmg || 0 : 0));
   const killI = days.indexOf(z.at);

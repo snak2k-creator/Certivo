@@ -24,7 +24,7 @@ describe('the facts of a day', () => {
 
   it('leaves study tasks out of the names', () => {
     ensureDay(pack, DAY);
-    const k = state.p.tasks.find((t) => t.study?.kind === 'kakera')!;
+    const k = state.p.tasks.find((t) => t.study)!;
     toggleTask('p', k.id, DAY);
     expect(summarize(state.p, pack, pack.id, DAY, DAY).done).toEqual([]);
   });

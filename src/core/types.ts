@@ -24,33 +24,84 @@ export interface Topic {
   title: string;
   short?: string;
   overview: string;
+  /** why it exists, in one line */
+  purpose?: string;
+  /** how it works */
+  mechanism?: string;
   examTip?: string;
   /** steps that must be cut in the order data flows (縛鎖) */
   order?: { prompt: string; steps: string[]; last: string; lastWords: string };
   /** two things that are easy to mix up (双影) */
   twins?: { a: string; b: string; tell: string };
+  sources?: { title: string; url: string }[];
 }
-export interface Domain { id: string; name: string; weightMin: number; weightMax: number }
+export interface Domain { id: string; name: string; en?: string; weightMin: number; weightMax: number }
+/** A word to learn before the questions (覚える). Without topicId it is one of the basic words. */
+export interface Term {
+  id: string;
+  topicId?: string;
+  word: string;
+  /** how to read it, or the English it comes from */
+  read?: string;
+  /** one plain line: what it is */
+  mean: string;
+  /** a few lines more: how it works, why it matters */
+  more?: string;
+  /** an example or a picture of it */
+  ex?: string;
+  /** an easily mixed-up word and how to tell them apart */
+  vs?: { id: string; tell: string };
+  /** other spellings that find it in a text; [] keeps a very common word from being marked everywhere */
+  alias?: string[];
+}
+/** The big picture of a certification, for someone who knows none of it yet. */
+export interface Guide {
+  what: string;
+  who: string;
+  why: string;
+  /** how the exam goes: time, score, language, renewal */
+  exam: string[];
+  /** each domain in plain words */
+  map: { domainId: string; story: string }[];
+  /** topics in the order they are best learned */
+  path: string[];
+  /** the basic words, learned first */
+  basics: string[];
+}
 export interface Pack {
   id: string;
   code: string;
   name: string;
+  examTitle?: string;
+  vendor?: string;
+  examLanguage?: string;
+  durationMin?: number;
   passingScore: number;
   scoreMax: number;
   packVersion: string;
+  sourceUrl?: string;
+  /** the day the facts were last checked against the source */
+  verifiedAt?: string;
+  /** the date of the exam outline the pack follows */
+  skillsAsOf?: string;
   domains: Domain[];
   topics: Topic[];
   questions: Question[];
+  guide?: Guide;
+  terms?: Term[];
 }
-export interface RegistryEntry { id: string; code: string; name: string; file: string; version: string; status: string }
+export interface RegistryEntry { id: string; code: string; name: string; file: string; version: string; status: string; vendor?: string }
 export interface Registry { certs: RegistryEntry[] }
 
 /* ---------- tasks ---------- */
 export interface StudyLink {
-  kind: 'drill' | 'kakera' | 'read';
+  /** learn: one lesson of 覚える; words: a review of the words that are due */
+  kind: 'drill' | 'kakera' | 'read' | 'learn' | 'words';
   certId: string;
   topicId?: string;
   domainId?: string;
+  /** learn: 'basics' or a topic id */
+  lesson?: string;
   count?: number;
 }
 export interface Task {
@@ -99,6 +150,15 @@ export interface StudyProgress {
   streak: number;
   bestStreak: number;
   lastStudyDate: string;
+  learn?: Learned;
+}
+/** A word's place in the review boxes, like a question's card. */
+export interface WordCard { box: number; due: string; seen: number; ok: number; lastAt: string }
+/** 覚える: lessons read (id -> the day first read), words in review, and when the big picture was read. */
+export interface Learned {
+  read: Record<string, string>;
+  words: Record<string, WordCard>;
+  guide?: string;
 }
 
 /* ---------- enemies ---------- */
@@ -144,6 +204,11 @@ export interface Day {
   work?: number;
   dmg?: number;
   kakera?: boolean;
+  /** the certifications whose 覚える task was made today (deleting it keeps it away for the day) */
+  learn?: string[];
+  /** 覚える: words recalled and lessons read */
+  words?: number;
+  lessons?: string[];
   note?: string;
   /** battles with the week's shadow, for 1日の記録 */
   fights?: Fight[];
@@ -213,6 +278,8 @@ export interface Profile {
   sound: boolean;
   haptics: boolean;
   ritual: boolean;
+  /** 動きを控えめに: no shakes, flashes or cut-ins */
+  calm: boolean;
   lastRitual: string;
   certId: string;
   packs: PackEntry[];

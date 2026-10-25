@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Question } from '../src/core/types';
-import { domainOf, domainRates, forecast, isCorrect, newProgress, pickDrill, pickKakera, pickMock, recordAnswer, shownStreak, stumbles } from '../src/core/study';
+import { backTag, domainOf, domainRates, forecast, isCorrect, newProgress, pickDrill, pickKakera, pickMock, recordAnswer, shownStreak, stumbles } from '../src/core/study';
 import { addDays } from '../src/core/util';
 import { DAY, answers, pack } from './helpers';
 
@@ -67,10 +67,16 @@ describe('the forecast', () => {
   });
 
   it('counts a right guess as half, on top of a prior of four answers at 50%', () => {
-    const log = answers('d1', true, DAY, 'guess');
+    const log = answers('d1', true, DAY, 'guess').slice(0, 10);
     const n = log.length;
     expect(domainRates(pack, log).d1).toEqual({ p: (n * 0.5 + 2) / (n + 4), n });
-    expect(domainRates(pack, answers('d1', true, DAY, 'sure')).d1.p).toBeCloseTo((n + 2) / (n + 4));
+    expect(domainRates(pack, answers('d1', true, DAY, 'sure').slice(0, 10)).d1.p).toBeCloseTo((n + 2) / (n + 4));
+  });
+
+  it('goes by the last 30 answers in a domain', () => {
+    const log = [...answers('d1', false), ...answers('d1', true)];
+    expect(log.length).toBeGreaterThan(60);
+    expect(domainRates(pack, log).d1).toEqual({ p: (30 + 2) / (30 + 4), n: 30 });
   });
 
   it('weighs the domains by the exam outline', () => {
@@ -108,10 +114,36 @@ describe('picking questions', () => {
   });
 
   it('fills a drill on a small topic from the rest of its domain', () => {
-    const small = pack.topics.find((t) => pack.questions.filter((x) => x.topicId === t.id).length === 1)!;
-    const qs = pickDrill(pack, newProgress(), DAY, { topicId: small.id }, 3);
+    const t = pack.topics[0];
+    const keep = pack.questions.find((x) => x.topicId === t.id)!;
+    const small = { ...pack, questions: pack.questions.filter((x) => x.topicId !== t.id || x === keep) };
+    const qs = pickDrill(small, newProgress(), DAY, { topicId: t.id }, 3);
     expect(qs).toHaveLength(3);
-    expect(qs.every((x: Question) => domainOf(pack, x) === small.domainId)).toBe(true);
+    expect(qs).toContain(keep);
+    expect(qs.every((x: Question) => domainOf(small, x) === t.domainId)).toBe(true);
+  });
+
+  it('fills short morning shards with the questions asked longest ago, not the ones just answered', () => {
+    const sp = newProgress();
+    const qs = pack.questions.filter((x) => x.topicId === 't-rag');
+    // all answered right and none due: only the filler is left
+    qs.forEach((x, i) => (sp.cards[x.id] = { box: 2, due: addDays(DAY, 3), seen: 1, correct: 1, lastAt: addDays(DAY, -i), lastConf: 'sure' }));
+    const got = pickKakera(pack, sp, DAY, 3, new Set(['t-rag']));
+    expect(got.map((x) => x.id)).toEqual(qs.slice(-3).reverse().map((x) => x.id));
+  });
+
+  it('tags a question that comes back with when it went wrong or was a guess', () => {
+    const sp = newProgress();
+    const one = q('q001');
+    expect(backTag(sp, one.id, DAY)).toBe('');
+    recordAnswer(sp, one, false, 'sure', 1, [], 'drill', DAY, 0);
+    expect(backTag(sp, one.id, DAY)).toBe('今日 まちがえた');
+    expect(backTag(sp, one.id, addDays(DAY, 1))).toBe('昨日 まちがえた');
+    expect(backTag(sp, one.id, addDays(DAY, 9))).toBe('前に まちがえた');
+    recordAnswer(sp, one, true, 'guess', 1, one.answer, 'drill', DAY, 0);
+    expect(backTag(sp, one.id, addDays(DAY, 1))).toBe('昨日 迷った');
+    recordAnswer(sp, one, true, 'sure', 1, one.answer, 'drill', DAY, 0);
+    expect(backTag(sp, one.id, DAY)).toBe('');
   });
 
   it('counts where yesterday went wrong, guesses included', () => {

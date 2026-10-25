@@ -6,6 +6,7 @@
 
 ## できること
 
+- **覚える**：問題の前に、資格の全体像（どんな資格か、どの章が試験の何%か）と、単元ごとのことばを読みます。読んだことばは間をあけて復習に出て、問題文や解説の下線のことばはタップで意味が出ます
 - **今日**：今日のやることと、朝の欠片（5問）、週の影、AI の案（その日の短い練習）。一行で書くと「あした 19:00 歯医者」「10/31まで 住民税」「毎日 ストレッチ」のように日付や時刻を読み取ります
 - **挑む**：週の影と戦う 4問。影の種類ごとに会心の条件があります
 - **やること**：個人の手帳と仕事の手帳。仕事は経験値やゲームの演出と切り離し、済んだ件数だけを数えます
@@ -67,7 +68,24 @@ AI への問い合わせは、安全上の理由で断られたときに、Anthr
 
 ## 資格パック
 
-資格ごとの問題と分野は `public/certs/` の JSON です。新しい資格を受けるときは、ファイルを足して `public/certs/index.json` に登録します（`version` で版を管理）。サービスワーカーは、ビルドのたびに中身から版を作り直します。
+資格ごとの問題・章・ことばは `public/certs/` の JSON です。記録は資格ごとに分かれていて、設定の「資格と試験」や ⌘K から、学ぶ資格を切りかえたり足したりできます。
+
+新しい資格を受けるときは、次の 3つだけです。
+
+1. `public/certs/<id>.json` を足す（中身は下の表。`ai-103.json` が見本）
+2. `public/certs/index.json` の `certs` に `{ id, code, name, vendor, file, version, status: "active" }` を足す。`version` はパックの `packVersion` と同じにする
+3. `npm test` を通す。`tests/packs.test.ts` が、登録されたすべてのパックの id のつながりや正解の向きを確かめます
+
+| 項目 | 中身 |
+|---|---|
+| 資格の情報 | `id` `code` `name` `examTitle` `vendor` `examLanguage` `passingScore` `scoreMax` `durationMin` `sourceUrl` `skillsAsOf` `packVersion` |
+| `domains` | 章。`id` `name` `en` `weightMin` `weightMax`（試験に占める %） |
+| `topics` | 単元。`id` `domainId` `title` `short` `overview` `purpose` `mechanism` `examTip`。影の仕掛けに使う `twins`（似た二つ）と `order`（順番）は任意 |
+| `questions` | 問題。`id` `topicId` `type`（`single` か `multi`） `stem` `options` `answer` `explanation` `whyWrong` `sources` |
+| `terms` | ことば。`id` `word` `read` `mean` `more` `ex`。単元のことばは `topicId`、まぎらわしい相手は `vs: { id, tell }`。問題文や解説では `word` とそのかっこの中の言い方に下線がつき、`alias` で別の言い方を足せます。`alias: []` にすると下線をつけません（「モデル」のようなよく出る言葉向け） |
+| `guide` | 全体像。`what` `who` `why`（文）、`exam`（試験のことの箇条書き）、`map`（章ごとの `story`）、`path`（単元を覚える順。すべての単元を一度ずつ）、`basics`（最初に読む土台のことば。`topicId` のないことば） |
+
+`terms` と `guide` がないパックでも、問題だけで使えます（覚えるタブは問題からはじめる案内になります）。サービスワーカーは、ビルドのたびに中身から版を作り直します。
 
 ## フォルダ
 
