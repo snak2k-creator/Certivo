@@ -7,7 +7,8 @@ import { state } from '../core/store';
 import { aiLeft, answer, finishStudyTask, type Outcome } from '../core/actions';
 import { topicShort } from '../core/enemy';
 import { domainOf, domainQuestions, forecast, isCorrect, pickDrill, pickKakera, pickMock, progress, settled } from '../core/study';
-import { activePack, topicById } from '../core/pack';
+import { hasLearn, lessonShort, lessonState, openTopics } from '../core/learn';
+import { packOf, topicById } from '../core/pack';
 import { levelFromTotal, need, title, unlocked, UNLOCK_LV } from '../core/game';
 import { aiReady, askTutor } from '../core/ai';
 import { doneOn } from '../core/tasks';
@@ -16,7 +17,9 @@ import { addDays, shuffle } from '../core/util';
 import { celebrate } from '../ui/slash';
 import { back } from '../ui/router';
 import { useKey } from '../ui/hooks';
+import { sheets } from '../ui/sheets';
 import { Arrow, Close } from '../ui/icons';
+import { Linked } from '../ui/words';
 
 type Kind = 'kakera' | 'drill' | 'zukan' | 'mock';
 interface Plan {
@@ -44,7 +47,10 @@ function plan(pk: Pack, args: string[], date: string): Plan | string {
     const qs = pickDrill(pk, sp, date, { topicId }, n);
     return { kind, task, tag, title: kind === 'zukan' ? 'おさらい' : `${qs.length}問だけ`, qs, scope: pk.questions.filter((q) => q.topicId === topicId), scopeName: topicShort(t) };
   };
-  const kakeraPlan = (n: number, task?: Task): Plan => ({ kind: 'kakera', task, tag: '朝の欠片', title: `${n}問`, qs: pickKakera(pk, sp, date, n), scope: pk.questions, scopeName: '' });
+  const kakeraPlan = (n: number, task?: Task): Plan => {
+    const qs = pickKakera(pk, sp, date, n, openTopics(pk, sp));
+    return { kind: 'kakera', task, tag: '朝の欠片', title: `${qs.length}問`, qs, scope: pk.questions, scopeName: '' };
+  };
 
   if (what === 'task') {
     const t = state.p.tasks.find((x) => x.id === id);
@@ -58,6 +64,7 @@ function plan(pk: Pack, args: string[], date: string): Plan | string {
       const qs = pickDrill(pk, sp, date, { domainId: st.domainId }, st.count || 3);
       return { kind: 'drill', task: t, tag: d?.name ?? '章', title: `${qs.length}問だけ`, qs, scope: domainQuestions(pk, st.domainId), scopeName: d?.name ?? '' };
     }
+    if (st.kind === 'learn' || st.kind === 'words') return 'この やることは、覚える画面で ひらきます。';
     return 'この やることは、読むものです。読んだら 今日の画面で 斬ってください。';
   }
   if (what === 'kakera') {
@@ -106,7 +113,9 @@ interface Run {
 }
 
 export function Session({ args, date }: { args: string[]; date: string }) {
-  const pk = activePack();
+  // a task, or a 図鑑 page, keeps the certification it was made for
+  const certId = args[0] === 'task' ? state.p.tasks.find((t) => t.id === args[1])?.study?.certId : args[0] === 'zukan' ? state.p.zukan.find((z) => z.boss.id === args[1])?.boss.certId : undefined;
+  const pk = packOf(certId);
   if (!pk) return <Blank text="問題集を 読みこんでいます…" />;
   return <SessionIn key={args.join('/')} pk={pk} args={args} date={date} />;
 }
@@ -275,7 +284,8 @@ function Questions({ pk, p, date }: { pk: Pack; p: Plan; date: string }) {
   };
 
   useKey((e) => {
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    // a word's sheet is open above the question: its keys are its own
+    if (sheets.now || e.metaKey || e.ctrlKey || e.altKey) return;
     const k = e.key;
     if (k === 'Escape') return close();
     const n = /^[1-6]$/.test(k) ? Number(k) - 1 : -1;
@@ -344,7 +354,9 @@ function Questions({ pk, p, date }: { pk: Pack; p: Plan; date: string }) {
                   </div>
                 )}
               </div>
-              <p class="ss-qt z-min">{q.stem}</p>
+              <p class="ss-qt z-min">
+                <Linked pk={pk} text={q.stem} />
+              </p>
               <div class="ss-opts">
                 {R.opts.map((id, i) => {
                   const isAns = q.answer.includes(id);
@@ -388,7 +400,9 @@ function Questions({ pk, p, date }: { pk: Pack; p: Plan; date: string }) {
                       あなたの答え　{R.picked.map(num).join('・')}　<s>{R.picked.map(text).join('、')}</s>
                     </span>
                   )}
-                  <p class="ss-why">{q.explanation}</p>
+                  <p class="ss-why">
+                    <Linked pk={pk} text={q.explanation} />
+                  </p>
                   {!R.ok &&
                     R.picked
                       .filter((id) => q.whyWrong?.[id])
@@ -473,6 +487,8 @@ function Result({ p, pk, right, marks, xp, dmg, out, before, onClose }: { p: Pla
   const g = state.p.game;
   const up = levelFromTotal(before.total).lv < g.lv;
   const boss = state.p.boss.cur;
+  // a missed question from a lesson not read yet: its words come first
+  const toRead = hasLearn(pk) ? [...new Set(p.qs.filter((_, i) => marks[i] === 'ng').map((q) => q.topicId))].find((t) => lessonState(pk, sp, t) === 'new') : undefined;
   return (
     <div class="ss-res">
       <div class="ss-resh">
@@ -527,6 +543,15 @@ function Result({ p, pk, right, marks, xp, dmg, out, before, onClose }: { p: Pla
             <span class="ss-rrt">
               「{p.task?.title}」を 斬った{out.three ? ' · 今日の三つ +30' : ''}
             </span>
+          </div>
+        )}
+        {toRead && (
+          <div class="ss-rr">
+            <span class="ss-rrl">覚える</span>
+            <a class="ss-rrt ss-learn" href={`#/lesson/${toRead}`}>
+              「{lessonShort(pk, toRead)}」の ことばを 先に 読む
+              <Arrow size={11} />
+            </a>
           </div>
         )}
         {(dmg > 0 || (out && out.dmg > 0)) && boss && (

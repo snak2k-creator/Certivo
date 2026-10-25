@@ -10,11 +10,12 @@ import './styles/recap.css';
 import './styles/zukan.css';
 import './styles/growth.css';
 import './styles/settings.css';
+import './styles/learn.css';
 import './styles/pc.css';
 import { App } from './app';
 import { setStatus, state } from './core/store';
 import { ensureDay, today } from './core/actions';
-import { activePack, loadPack, loadRegistry } from './core/pack';
+import { activePack, loadPack, loadPacks, loadRegistry } from './core/pack';
 import { autoAi, checkAi } from './core/ai';
 import { initCloud } from './core/cloud';
 import { RECAP_HOUR } from './core/recap';
@@ -34,6 +35,7 @@ async function boot() {
   try {
     await loadRegistry();
     await loadPack(state.profile.certId);
+    void loadPacks();
   } catch {
     /* offline on the very first visit: the app still works for tasks */
   }

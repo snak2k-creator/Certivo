@@ -5,13 +5,15 @@ import { notebook } from '../core/store';
 import { addTask, deleteTask, moveTomorrow, today, updateTask } from '../core/actions';
 import { DIFF, SKILLS, guessSkill, skillName } from '../core/game';
 import { doneOn, isRepeating, parseLine, repeatLabel } from '../core/tasks';
-import { activePack, topicById } from '../core/pack';
+import { packOf, topicById } from '../core/pack';
 import { topicShort } from '../core/enemy';
+import { isLearnTask, lessonShort } from '../core/learn';
 import { sfx } from '../core/sfx';
 import { DOW, mdSlash } from '../core/util';
 import { added, toast } from './fx';
 import { closeSheet } from './sheets';
 import { go } from './router';
+import { studyPath } from './slash';
 
 const DIFFS: Diff[] = ['e', 'n', 'h'];
 const DIFF_LABEL: Record<Diff, string> = { e: 'かるい', n: 'ふつう', h: '重い' };
@@ -276,9 +278,20 @@ export function TaskDetail({ nb, id, edit = false, onClose }: { nb: Notebook; id
   if (editing) return <EditForm nb={nb} t={t} onDone={() => setEditing(false)} />;
   const date = today();
   const done = doneOn(t, date);
-  const pk = activePack();
+  const pk = packOf(t.study?.certId);
   const topic = t.study?.topicId && pk ? topicById(pk, t.study.topicId) : undefined;
-  const studyLabel = t.study ? (t.study.kind === 'kakera' ? `朝の欠片 · ${t.study.count ?? 5}問` : t.study.kind === 'drill' ? `${topic ? `「${topicShort(topic)}」` : ''}${t.study.count ?? 3}問` : '読む') : '';
+  const st = t.study;
+  const studyLabel = !st
+    ? ''
+    : st.kind === 'kakera'
+      ? `朝の欠片 · ${st.count ?? 5}問`
+      : st.kind === 'drill'
+        ? `${topic ? `「${topicShort(topic)}」` : ''}${st.count ?? 3}問`
+        : st.kind === 'learn'
+          ? `単元「${pk && st.lesson ? lessonShort(pk, st.lesson) : '…'}」を 読む`
+          : st.kind === 'words'
+            ? `ことば ${st.count ?? 0}語を 思い出す`
+            : '読む';
   const rows: [string, string][] = [];
   rows.push(['日付', isRepeating(t) ? `${repeatLabel(t.repeat)}（${mdSlash(t.date)}から）` : mdSlash(t.date)]);
   if (t.time) rows.push(['時刻', t.time]);
@@ -307,7 +320,7 @@ export function TaskDetail({ nb, id, edit = false, onClose }: { nb: Notebook; id
       <b class="tf-title">{t.title}</b>
       {t.study && (
         <div class="tf-study">
-          <span class="z-tag z-tag-r">学習</span>
+          <span class="z-tag z-tag-r">{isLearnTask(t) ? '覚える' : '学習'}</span>
           <span>{studyLabel}</span>
           {!done && t.study.kind !== 'read' && (
             <button
@@ -315,7 +328,7 @@ export function TaskDetail({ nb, id, edit = false, onClose }: { nb: Notebook; id
               class="z-bk"
               onClick={() => {
                 onClose();
-                go(`session/task/${t.id}`);
+                go(studyPath(t));
               }}
             >
               はじめる

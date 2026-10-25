@@ -15,6 +15,8 @@ import { Today } from './screens/Today';
 import { Welcome } from './screens/Welcome';
 import { Battle } from './screens/Battle';
 import { Session } from './screens/Session';
+import { Learn } from './screens/Learn';
+import { Lesson } from './screens/Lesson';
 import { Tasks } from './screens/Tasks';
 import { Recap } from './screens/Recap';
 import { Zukan } from './screens/Zukan';
@@ -24,9 +26,10 @@ import { PcShell } from './pc/Shell';
 import { TodayPc } from './pc/TodayPc';
 
 /** Screens that take the whole viewport. */
-const FULL = new Set(['battle', 'session', 'welcome']);
+const FULL = new Set(['battle', 'session', 'lesson', 'welcome']);
 /** Screens without the bottom navigation: the full ones, and the pages that close with × or もどる. */
 const NO_NAV = new Set([...FULL, 'recap', 'settings']);
+const hidesNav = (r: Route) => NO_NAV.has(r.name) || (r.name === 'learn' && !!r.args[0]);
 
 export function wantsRitual(date: string, routeName: string) {
   const p = state.profile;
@@ -51,6 +54,10 @@ export function Screen({ r, date, now, onReplay, pc = false }: { r: Route; date:
       return <Battle date={date} />;
     case 'session':
       return <Session args={r.args} date={date} />;
+    case 'learn':
+      return <Learn args={r.args} date={date} />;
+    case 'lesson':
+      return <Lesson args={r.args} date={date} />;
     case 'tasks':
       return <Tasks date={date} />;
     case 'recap':
@@ -129,7 +136,7 @@ export function App() {
       <main class="z-main" id="main">
         <Screen r={r} date={date} now={now} onReplay={replay} />
       </main>
-      {!NO_NAV.has(r.name) && <Nav current={r.name} date={date} />}
+      {!hidesNav(r) && <Nav current={r.name} date={date} />}
       <SheetHost />
       <Overlays />
       {intro && <Intro date={date} onDone={endIntro} />}

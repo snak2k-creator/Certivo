@@ -10,6 +10,8 @@ import { go } from './router';
 
 /** Tasks that open a study session instead of being checked by hand. */
 export const opensSession = (nb: Notebook, t: Task, date: string) => nb === 'p' && !!t.study && t.study.kind !== 'read' && !doneOn(t, date);
+/** Where a study task opens: 覚える in the lesson screen, questions in a session. */
+export const studyPath = (t: Task) => (t.study?.kind === 'learn' || t.study?.kind === 'words' ? `lesson/task/${t.id}` : `session/task/${t.id}`);
 
 export function achievementToasts(ids: string[], delay = 0) {
   ids.forEach((id, n) => {
@@ -25,7 +27,7 @@ export function achievementToasts(ids: string[], delay = 0) {
 export function slash(nb: Notebook, t: Task, date: string) {
   if (opensSession(nb, t, date)) {
     sfx('open');
-    go(`session/task/${t.id}`);
+    go(studyPath(t));
     return;
   }
   const hpBefore = state.p.boss.cur?.hp ?? 0;

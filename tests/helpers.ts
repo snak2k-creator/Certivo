@@ -3,6 +3,9 @@ import { vi } from 'vitest';
 import raw from '../public/certs/ai-103.json';
 import type { Answer, Conf, Pack, Task } from '../src/core/types';
 import { dropUndo, newPersonal, newProfile, newWork, state } from '../src/core/store';
+import { progress } from '../src/core/study';
+import { learnedOf } from '../src/core/learn';
+import { addDays } from '../src/core/util';
 
 export const pack = raw as unknown as Pack;
 export const DAY = '2026-10-21';
@@ -42,4 +45,10 @@ export function task(over: Partial<Task> = {}): Task {
 export function answers(domainId: string, ok: boolean, d = DAY, conf: Conf = 'sure'): Answer[] {
   const topics = new Set(pack.topics.filter((t) => t.domainId === domainId).map((t) => t.id));
   return pack.questions.filter((q) => topics.has(q.topicId)).map((q) => ({ q: q.id, d, ok, conf, ms: 9000, pick: ok ? q.answer : [], mode: 'drill' }));
+}
+
+/** Lessons already read the day before, so the questions have somewhere to come from. */
+export function learnt(...lessons: string[]) {
+  const L = learnedOf(progress(state.p, pack.id));
+  for (const l of lessons) L.read[l] = addDays(DAY, -1);
 }

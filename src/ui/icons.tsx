@@ -93,6 +93,13 @@ export const NavToday = () => (
     <path data-r d="M8.5 14.5L11 17L15.5 11.5" fill="none" stroke="#D04D3A" stroke-width="2.2" />
   </svg>
 );
+export const NavLearn = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M2.5 5L11 6.6V21L2.5 19.4Z" fill="currentColor" />
+    <path d="M13 6.6L21.5 5V19.4L13 21Z" fill="currentColor" />
+    <path d="M15.5 6V11L17.25 9.6L19 11V5.4Z" fill="#121214" />
+  </svg>
+);
 export const NavBattle = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
     <path d="M5 19L17 4L20 4L20 7L5 19Z" fill="currentColor" />

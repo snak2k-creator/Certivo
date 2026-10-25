@@ -9,7 +9,7 @@ import { state } from '../core/store';
 import { DEFEAT_XP, answer, bossBattleStarted, bossHit, bossMiss, defeatBoss, logFight } from '../core/actions';
 import { BATTLE_QUESTIONS, ENEMY, PLATE_DAMAGE, battleDamage, isCrit, topicShort, weekNumber } from '../core/enemy';
 import { isCorrect, pickDrill, progress } from '../core/study';
-import { activePack, questionById, topicById } from '../core/pack';
+import { packOf, questionById, topicById } from '../core/pack';
 import { levelFromTotal, need, title } from '../core/game';
 import { BUZZ, buzz, sfx } from '../core/sfx';
 import { addDays, clamp, hashStr, reducedMotion, seeded, shuffle } from '../core/util';
@@ -210,8 +210,8 @@ function Empty({ head, sub, zukan }: { head: string; sub: string; zukan?: string
 }
 
 export function Battle({ date }: { date: string }) {
-  const pk = activePack();
   const b = state.p.boss.cur;
+  const pk = packOf(b?.certId);
   const deadAtStart = useRef(killedEntry(b));
   if (!b) return <Empty head="まだ 姿がない。" sub="問題集を 読みこむと、弱点から 生まれます。" />;
   if (deadAtStart.current) return <Empty head={`${b.name}は、もう 図鑑の中。`} sub="次の影は、月曜に 生まれる。" zukan={b.id} />;

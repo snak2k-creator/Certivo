@@ -2,6 +2,8 @@
 import type { Boss } from '../core/types';
 import { state } from '../core/store';
 import { BATTLE_QUESTIONS, ENEMY, weekNumber } from '../core/enemy';
+import { packOf } from '../core/pack';
+import { hasLearn, lessonShort, lessonState } from '../core/learn';
 import { enemyArt, type BakusaOpts } from '../art/enemies';
 import { dayDiff, md } from '../core/util';
 import { fx } from './fx';
@@ -20,6 +22,15 @@ export function bossWhen(b: Boss, date: string) {
 }
 
 export const killedEntry = (b?: Boss) => (b ? state.p.zukan.find((z) => z.boss.id === b.id) : undefined);
+
+/** The shadow's topic, when its lesson has not been read yet: worth reading before the fight. */
+export function unreadLesson(b: Boss) {
+  const pk = packOf(b.certId);
+  const sp = pk && state.p.study[pk.id];
+  if (!pk || !hasLearn(pk) || !pk.topics.some((t) => t.id === b.topicId)) return null;
+  if (sp && lessonState(pk, sp, b.topicId) !== 'new') return null;
+  return { id: b.topicId, name: lessonShort(pk, b.topicId) };
+}
 
 export function BossCard({ date, class: c = '' }: { date: string; class?: string }) {
   const b = state.p.boss.cur;
@@ -43,6 +54,7 @@ export function BossCard({ date, class: c = '' }: { date: string; class?: string
   const hpPct = (b.hp / b.max) * 100;
   const lost = hit ? ((hit.from - hit.to) / b.max) * 100 : 0;
   const aria = dead ? `今週の敵、${b.name}。倒しました` : `今週の敵、${b.name}。体力 ${b.hp}`;
+  const unread = dead ? null : unreadLesson(b);
 
   return (
     <section class={`z-boss${dead ? ' is-dead' : ''}${ready ? ' is-ready' : ''} ${c}`} aria-label={aria}>
@@ -88,6 +100,11 @@ export function BossCard({ date, class: c = '' }: { date: string; class?: string
                 {ready ? 'とどめを刺す' : '挑む'}
                 <Arrow />
               </a>
+              {!ready && unread && (
+                <a href={`#/lesson/${unread.id}`} class="z-boss-learn">
+                  先に 覚える：{unread.name}
+                </a>
+              )}
             </>
           )}
         </div>

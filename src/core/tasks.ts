@@ -69,7 +69,7 @@ export function metaLine(t: Task, today: string, nb: Notebook) {
   if (t.due) parts.push(mdSlash(t.due) + 'まで');
   if (t.mins) parts.push(t.mins + '分');
   if (isRepeating(t)) parts.push(repeatLabel(t.repeat));
-  if (nb === 'p' && t.study) parts.push('学習');
+  if (nb === 'p' && t.study) parts.push(t.study.kind === 'learn' || t.study.kind === 'words' ? '覚える' : '学習');
   if (t.from === 'ai') parts.push('AI の案');
   return parts.join(' · ');
 }

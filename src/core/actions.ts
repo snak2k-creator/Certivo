@@ -1,10 +1,11 @@
 // Everything that changes the notebooks goes through here, so rules live in one place.
-import type { Boss, Conf, Day, Fight, Mode, Notebook, Pack, Question, Task } from './types';
+import type { Boss, Conf, Day, Fight, Mode, Notebook, Pack, Question, RegistryEntry, Task } from './types';
 import { commit, notebook, snapshot, state } from './store';
 import { DIFF, THREE_BONUS, addXp, checkAchievements, unlocked } from './game';
 import { doneOn, isRepeating, newTask, tasksFor } from './tasks';
-import { pickDrill, progress, recordAnswer, stumbles, weakestTopic } from './study';
+import { markStudied, pickDrill, progress, recordAnswer, stumbles, weakestTopic } from './study';
 import { KAKERA_DAMAGE, makeBoss, strongBoss, studyTaskDamage, topicShort } from './enemy';
+import { BASICS, GUIDE_XP, LESSON_XP, REVIEW_MAX, WORD_DAMAGE, WORD_XP, beginner, dueWords, hasLearn, isLearnTask, learnedOf, lessonShort, lessons, nextLesson, openTopics, recordWord, seeWords, wordsOf } from './learn';
 import { addDays, dayDiff, monthKey, uid, weekStart, ymd } from './util';
 import { RECAP_HOUR, summarize, writeRecap } from './recap';
 
@@ -160,12 +161,17 @@ export function moveTomorrow(nb: Notebook, id: string, date = today()) {
 
 /* ---------- daily setup ---------- */
 
-/** Today's 朝の欠片 lives as an ordinary task, made once per day; yesterday's unfinished one goes away. */
+/**
+ * Today's 朝の欠片 lives as an ordinary task, made once per day; yesterday's unfinished one, and one for another
+ * certification, goes away. Nobody gets questions before learning anything: it waits for the first lesson.
+ */
 function ensureKakera(pk: Pack, date: string) {
   const p = state.p;
-  p.tasks = p.tasks.filter((t) => !(t.study?.kind === 'kakera' && !t.doneAt && t.date < date));
-  if (p.tasks.some((t) => t.study?.kind === 'kakera' && t.date === date)) return false;
-  if (dayOf(date).kakera) return false;
+  const n = p.tasks.length;
+  p.tasks = p.tasks.filter((t) => !(t.study?.kind === 'kakera' && !t.doneAt && (t.date < date || t.study.certId !== pk.id)));
+  const dropped = p.tasks.length !== n;
+  if (p.tasks.some((t) => t.study?.kind === 'kakera' && t.date === date)) return dropped;
+  if (dayOf(date).kakera || beginner(pk, progress(p, pk.id))) return dropped;
   p.tasks.push({
     id: uid('k'),
     title: '朝の欠片 5問',
@@ -181,6 +187,15 @@ function ensureKakera(pk: Pack, date: string) {
   return true;
 }
 
+/** Where a new shadow may be born: what has been learned so far, or, before anything is, the first lesson's topic. */
+function bossTopics(pk: Pack) {
+  const sp = progress(state.p, pk.id);
+  const open = openTopics(pk, sp);
+  if (open.size || !hasLearn(pk)) return open;
+  const first = lessons(pk).find((l) => l !== BASICS);
+  return new Set(first ? [first] : []);
+}
+
 function ensureBoss(pk: Pack, date: string) {
   const b = state.p.boss;
   const wk = weekStart(date);
@@ -193,7 +208,7 @@ function ensureBoss(pk: Pack, date: string) {
   }
   // from Lv.9, a week shadow that got away last week comes back stronger (once)
   const back = away && prev!.tier === 'week' && prev!.certId === pk.id && dayDiff(prev!.week, wk) === 7 && unlocked(state.p.game.lv, 'strong');
-  b.cur = back ? strongBoss(prev!, date) : makeBoss(pk, progress(state.p, pk.id), date, prev?.topicId);
+  b.cur = back ? strongBoss(prev!, date) : makeBoss(pk, progress(state.p, pk.id), date, prev?.topicId, bossTopics(pk));
   return true;
 }
 
@@ -206,12 +221,47 @@ function ensureSuggestion(pk: Pack, date: string) {
   }
   if (ai.sug && ai.sug.date === date) return false;
   const sp = progress(state.p, pk.id);
+  // nothing to drill before anything is learned: today's 覚える is the suggestion
+  if (beginner(pk, sp)) return false;
+  const open = openTopics(pk, sp);
   const st = stumbles(pk, sp, addDays(date, -1));
   const top = Object.entries(st).sort((a, b) => b[1] - a[1])[0];
-  const topic = top ? pk.topics.find((t) => t.id === top[0])! : weakestTopic(pk, sp, date);
+  const topic = top ? pk.topics.find((t) => t.id === top[0])! : weakestTopic(open.size ? { ...pk, topics: pk.topics.filter((t) => open.has(t.id)) } : pk, sp, date);
   const short = topicShort(topic);
   const reason = top ? `きのう ${top[1]}回 迷ったところから` : sp.log.length ? `いちばん 揺れている「${short}」から` : `まだ 手つかずの「${short}」から`;
   ai.sug = { date, topicId: topic.id, title: `弱点の「${short}」を 3問`, reason, source: 'zan' };
+  return true;
+}
+
+/**
+ * Today's 覚える, also an ordinary task: the next lesson, or once every lesson is read, a review of the words
+ * that are due. One a day, made once (deleting it keeps it away for the day); yesterday's unfinished one goes.
+ */
+function ensureLearn(pk: Pack, date: string) {
+  const p = state.p;
+  const n = p.tasks.length;
+  p.tasks = p.tasks.filter((t) => !(isLearnTask(t) && !t.doneAt && (t.date < date || t.study!.certId !== pk.id)));
+  const dropped = p.tasks.length !== n;
+  const d = dayOf(date);
+  if (d.learn || !hasLearn(pk) || p.tasks.some((t) => isLearnTask(t) && t.date === date)) return dropped;
+  const sp = progress(p, pk.id);
+  const next = nextLesson(pk, sp);
+  const due = dueWords(pk, sp, date).length;
+  if (!next && due < 3) return dropped;
+  const count = Math.min(REVIEW_MAX, due);
+  p.tasks.push({
+    id: uid('l'),
+    title: next ? `覚える：${lessonShort(pk, next)}` : `ことばの復習 ${count}語`,
+    date,
+    mins: next ? 5 : 3,
+    diff: next ? 'n' : 'e',
+    sk: '知',
+    study: next ? { kind: 'learn', certId: pk.id, lesson: next } : { kind: 'words', certId: pk.id, count },
+    // above the morning shards: learn first, then answer
+    createdAt: Date.now() - 2,
+    from: 'zan',
+  });
+  d.learn = true;
   return true;
 }
 
@@ -220,10 +270,11 @@ export function ensureDay(pk: Pack | undefined, date = today()) {
   if (!pk) return;
   progress(state.p, pk.id);
   const a = ensureBoss(pk, date);
+  const l = ensureLearn(pk, date);
   const b = ensureKakera(pk, date);
   const c = ensureSuggestion(pk, date);
   const r = ensureRecaps(pk, date);
-  if (a || b || c || r) commit('p');
+  if (a || l || b || c || r) commit('p');
 }
 
 export function acceptSuggestion(date = today()) {
@@ -268,6 +319,76 @@ export function answer(pk: Pack, q: Question, pick: string[], ok: boolean, conf:
   if (mode === 'kakera' && ok) damageBoss(KAKERA_DAMAGE, date);
   commit('p');
   return { ok, xp: r.xp, note: r.note, lvFrom, lvTo: state.p.game.lv };
+}
+
+/* ---------- 覚える ---------- */
+
+export interface WordResult { ok: boolean; xp: number; up: boolean; dmg: number }
+
+/** One recalled word, in a lesson's check or a review. A word recalled for the day hits the shadow once. */
+export function answerWord(pk: Pack, termId: string, ok: boolean, date = today()): WordResult {
+  const sp = progress(state.p, pk.id);
+  const r = recordWord(sp, termId, ok, date);
+  markStudied(sp, date);
+  const xp = ok ? (r.up ? WORD_XP : 1) : 1;
+  gainXp(xp, '知', date);
+  let dmg = 0;
+  if (ok && r.up) {
+    const d = dayOf(date);
+    d.words = (d.words || 0) + 1;
+    const hp0 = state.p.boss.cur?.hp ?? 0;
+    dmg = hp0 - damageBoss(WORD_DAMAGE, date);
+  }
+  commit('p');
+  return { ok, xp, up: r.up, dmg };
+}
+
+/** Today's 覚える task for this lesson (or review), not cut yet. */
+function learnTaskFor(certId: string, lesson: string | null, date: string) {
+  return state.p.tasks.find((t) => {
+    if (t.date > date || doneOn(t, date) || t.study?.certId !== certId) return false;
+    return lesson ? t.study.kind === 'learn' && t.study.lesson === lesson : t.study.kind === 'words';
+  });
+}
+
+/**
+ * A lesson read to the end: the first time gives XP, its words start their review, and today's 覚える task for
+ * it is cut, because the person did it.
+ */
+export function finishLesson(pk: Pack, lesson: string, date = today()) {
+  const sp = progress(state.p, pk.id);
+  const L = learnedOf(sp);
+  const first = !L.read[lesson];
+  if (first) {
+    L.read[lesson] = date;
+    const d = dayOf(date);
+    d.lessons = [...(d.lessons || []), lesson];
+  }
+  seeWords(sp, wordsOf(pk, lesson).map((t) => t.id), date);
+  markStudied(sp, date);
+  const lvFrom = state.p.game.lv;
+  if (first) gainXp(LESSON_XP, '知', date);
+  commit('p');
+  const t = learnTaskFor(pk.id, lesson, date);
+  const out = t ? toggleTask('p', t.id, date) : null;
+  return { first, xp: (first ? LESSON_XP : 0) + (out?.xp ?? 0), lvFrom, out, task: t };
+}
+
+/** A review finished: today's review task (if any) is cut. */
+export function finishReview(pk: Pack, date = today()) {
+  const t = learnTaskFor(pk.id, null, date);
+  const out = t ? toggleTask('p', t.id, date) : null;
+  return { out, task: t };
+}
+
+/** The big picture read through, once. */
+export function readGuide(pk: Pack, date = today()) {
+  const L = learnedOf(progress(state.p, pk.id));
+  if (L.guide) return 0;
+  L.guide = date;
+  gainXp(GUIDE_XP, '知', date);
+  commit('p');
+  return GUIDE_XP;
 }
 
 /** A session finished: its task (if any) is checked because the person did it. sessionDmg is what its answers did. */
@@ -404,6 +525,17 @@ export function setDayNote(date: string, note: string, label = '書き足した'
 export function setProfile(patch: Partial<typeof state.profile>) {
   Object.assign(state.profile, patch);
   commit('profile');
+}
+
+/** Studies a certification from the registry: added on first use, then made the active one. */
+export function studyCert(entry: RegistryEntry) {
+  const pr = state.profile;
+  if (pr.certId === entry.id && pr.packs.some((x) => x.certId === entry.id)) return false;
+  snapshot('資格を 切りかえた', 'profile');
+  if (!pr.packs.some((x) => x.certId === entry.id)) pr.packs.push({ certId: entry.id, code: entry.code, name: entry.name, examDate: '', status: 'studying' });
+  pr.certId = entry.id;
+  commit('profile');
+  return true;
 }
 
 export function setExamDate(certId: string, examDate: string) {

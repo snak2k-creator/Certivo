@@ -8,6 +8,7 @@ import { doneOn, tasksFor } from '../core/tasks';
 import { exportCsv, exportDaysCsv } from '../core/data';
 import { activePack } from '../core/pack';
 import { forecast } from '../core/study';
+import { dueWords, hasLearn, lessonShort, nextLesson } from '../core/learn';
 import { RECAP_HOUR } from '../core/recap';
 import { sfx } from '../core/sfx';
 import { addDays, md } from '../core/util';
@@ -50,9 +51,19 @@ function commands(date: string): Cmd[] {
   const pk = activePack();
   const sp = pk ? p.study[pk.id] : undefined;
   const out: Cmd[] = [{ id: 'add', g: '書', label: 'やることを書く', hint: 'N', run: focusAdd }];
+  if (pk && sp && hasLearn(pk)) {
+    const nx = nextLesson(pk, sp);
+    const due = dueWords(pk, sp, date).length;
+    if (nx) out.push({ id: 'lesson', g: '覚', label: `次の単元を 覚える：${lessonShort(pk, nx)}`, run: to(`lesson/${nx}`) });
+    if (due) out.push({ id: 'review', g: '復', label: 'ことばを 復習する', hint: `${due}語`, run: to('lesson/review') });
+  }
   if (b && !killedEntry(b)) out.push({ id: 'battle', g: '挑', label: `${b.name}に 挑む`, hint: b.hp <= 0 ? 'とどめ' : bossWhen(b, date), run: to('battle') });
   out.push(
     { id: 'kakera', g: '欠', label: '朝の欠片を 解く', hint: '5問', run: to('session/kakera') },
+    { id: 'learn', g: '覚', label: '覚える を ひらく', hint: pk ? pk.code : '', run: to('learn') },
+    { id: 'words', g: '語', label: '用語集を ひらく', hint: pk?.terms?.length ? `${pk.terms.length}語` : '', run: to('learn/words') },
+    { id: 'guide', g: '全', label: '資格の 全体像を 読む', hint: pk ? pk.code : '', run: to('learn/guide') },
+    { id: 'cert', g: '資', label: '資格を 切りかえる・足す', run: () => openSheet({ kind: 'cert' }) },
     { id: 'recap', g: '記', label: '1日の記録を ひらく', hint: `${RECAP_HOUR}:00 に 書く`, run: to('recap') },
     { id: 'growth', g: '成', label: '成長を ひらく', hint: pk && sp && sp.log.length ? `Lv.${p.game.lv} · 見込み ${forecast(pk, sp.log, date)}` : `Lv.${p.game.lv}`, run: to('growth') },
     { id: 'zukan', g: '鑑', label: '図鑑を ひらく', hint: p.zukan.length ? `倒した影 ${p.zukan.length}体` : '', run: to('zukan') },
@@ -107,8 +118,14 @@ export function Palette({ date }: { date: string }) {
         }),
       );
     const cmds = commands(date).filter((c) => squash(c.label).includes(k));
+    const pk = nb === 'p' ? activePack() : undefined;
+    const words = (pk?.terms ?? [])
+      .filter((t) => [t.word, t.read ?? '', ...(t.alias ?? [])].some((x) => squash(x).includes(k)))
+      .slice(0, 4)
+      .map((t): Cmd => ({ id: 'w-' + t.id, g: '語', label: t.word, hint: t.mean.length > 26 ? t.mean.slice(0, 25) + '…' : t.mean, run: () => openSheet({ kind: 'term', certId: pk!.id, id: t.id }) }));
     items = [
       ...tasks,
+      ...words,
       ...cmds,
       {
         id: 'write',
@@ -138,7 +155,7 @@ export function Palette({ date }: { date: string }) {
   const run = (c: Cmd | undefined) => {
     if (!c) return;
     closeSheet();
-    if (!c.id.startsWith('t-')) sfx('tock');
+    if (!c.id.startsWith('t-') && !c.id.startsWith('w-')) sfx('tock');
     c.run();
   };
   useKey(

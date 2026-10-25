@@ -8,6 +8,8 @@ import { idToken } from './cloud';
 import { RECAP_HOUR, summarize } from './recap';
 import { ENEMY, topicShort } from './enemy';
 import { stumbles } from './study';
+import { openTopics } from './learn';
+import { packOf } from './pack';
 import { addDays, dayDiff, monthKey } from './util';
 
 export interface PlanStep { title: string; time: string; mins: number }
@@ -141,7 +143,9 @@ function firstTry(key: string) {
 export function suggestInput(pk: Pack, date: string): AiIn['suggest'] {
   const sp = state.p.study[pk.id];
   const st = sp ? stumbles(pk, sp, addDays(date, -1)) : {};
-  const topics = pk.topics.map((t) => {
+  // only what has been learned: the suggestion is a drill, and a drill comes after the lesson
+  const open = sp ? openTopics(pk, sp) : new Set<string>();
+  const topics = pk.topics.filter((t) => !open.size || open.has(t.id)).map((t) => {
     let seen = 0;
     let correct = 0;
     for (const q of pk.questions) {
@@ -183,7 +187,7 @@ export async function autoAi(pk: Pack | undefined, date = today()) {
   }
   const b = state.p.boss.cur;
   if (b && b.source === 'zan' && b.hp > 0 && firstTry('boss:' + b.id)) {
-    const topic = pk.topics.find((t) => t.id === b.topicId);
+    const topic = packOf(b.certId)?.topics.find((t) => t.id === b.topicId);
     const out = await askAi('boss', { type: b.type, weak: ENEMY[b.type].weak, topic: topic ? topicShort(topic) : '', born: b.born });
     if (out && state.p.boss.cur?.id === b.id) {
       b.name = out.name;
