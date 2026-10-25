@@ -1,15 +1,19 @@
-// The first screen: the mark cuts in, ZAN splits on a red band, then Google sign-in or start on this device.
-// After signing in, one question: may the AI write the nightly page.
-import { useState } from 'preact/hooks';
+// The first run: the mark cuts in, ZAN splits on a red band, then a short setup, one question per page:
+// which certification, the exam day, where the records live, the nightly page. It ends on a ready card.
+import { useEffect, useState } from 'preact/hooks';
+import type { RegistryEntry } from '../core/types';
 import { state } from '../core/store';
-import { aiCapNow, setProfile } from '../core/actions';
+import { ensureDay, setExamDate, setProfile, studyCert } from '../core/actions';
 import { cloudConfigured, signIn } from '../core/cloud';
-import { sfx } from '../core/sfx';
-import { addDays, dowName, md, ymd } from '../core/util';
-import { Google } from '../ui/icons';
+import { loadPack, loadRegistry } from '../core/pack';
+import { RECAP_HOUR } from '../core/recap';
+import { buzz, sfx } from '../core/sfx';
+import { addDays, dayDiff, dowName, md, ymd } from '../core/util';
+import { Check, ChevL, Google } from '../ui/icons';
+import { ExamDate } from '../ui/ExamDate';
 import { toast } from '../ui/fx';
 import { go } from '../ui/router';
-import { useScrollLock } from '../ui/hooks';
+import { useKey } from '../ui/hooks';
 
 function Mark({ k }: { k: number }) {
   return (
@@ -35,140 +39,315 @@ function Mark({ k }: { k: number }) {
   );
 }
 
-export function NightlySheet({ onDone }: { onDone: () => void }) {
-  useScrollLock();
-  const y = addDays(ymd(), -1);
-  const answer = (yes: boolean) => {
-    setProfile({ nightly: yes, onboarded: true });
-    sfx(yes ? 'write' : 'tock');
-    if (yes) toast('毎晩 22:00 に、まとめます');
-    onDone();
-  };
+type Step = 'cert' | 'exam' | 'save' | 'nightly' | 'ready';
+
+/** The AI can be asked now: the server has it, and this person may use it. */
+const aiOpen = () => state.status.ai && (state.status.aiMode === 'anon' || (state.status.aiMode === 'firebase' && !!state.status.user));
+
+/** A big choice tile: a mark on the left, a title, a value line, a check when chosen. */
+function Choice({ on, title, sub, mark, onClick, busy }: { on: boolean; title: string; sub?: string; mark: preact.ComponentChildren; onClick: () => void; busy?: boolean }) {
   return (
-    <>
-      <div class="l-dim" />
-      <section class="l-sheet" role="dialog" aria-modal="true" aria-label="毎晩の自動まとめ">
-        <div class="l-sheet-in">
-          <span class="l-q">はじめに、ひとつだけ</span>
-          <b class="z-min l-qt">
-            毎晩、その日の記録を
-            <br />
-            自動でまとめますか
-          </b>
-          <div class="l-sample" aria-label="まとめの見本">
-            <div class="l-sh">
-              <b class="z-min">{md(y)}</b>
-              <span class="z-tag z-tag-r">{dowName(y)}</span>
-              <span class="l-sp" />
-              <span class="l-sm">22:00 · 見本</span>
-            </div>
-            <p class="z-min">朝の欠片は 5問とも正解。縛鎖には 一日で 420。迷った 2問は、あしたの朝の欠片に入れておきました。</p>
-          </div>
-          <ul class="l-lis">
-            <li>
-              まとめるのは <b>個人の手帳</b> だけ。22:00 を過ぎて ひらくと、もう できています。
-            </li>
-            <li>送るのは、その日の数字と 斬ったやることの題名。仕事の手帳は 件数だけで、中身は送りません。</li>
-            <li>AI を使うのは 月 {aiCapNow()} 回まで。設定で いつでも 止められます。</li>
-          </ul>
-          <div class="l-sacts">
-            <button type="button" class="l-btn l-bk" onClick={() => answer(true)}>
-              まとめてもらう
-            </button>
-            <button type="button" class="l-txt l-txt-k" onClick={() => answer(false)}>
-              今はしない
-            </button>
-          </div>
-        </div>
-      </section>
-    </>
+    <button type="button" class={`su-ch${on ? ' on' : ''}${busy ? ' l-busy' : ''}`} role="radio" aria-checked={on} onClick={onClick}>
+      <span class="su-chm">{mark}</span>
+      <span class="su-cht">
+        <b>{title}</b>
+        {sub && <span>{sub}</span>}
+      </span>
+      <span class="su-chk" aria-hidden="true">
+        {on && <Check size={18} />}
+      </span>
+    </button>
+  );
+}
+
+function DeviceMark() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+      <path d="M5 1.5H17V20.5H5Z" fill="currentColor" />
+      <path d="M9 17.5H13" stroke="#121214" stroke-width="2" />
+    </svg>
   );
 }
 
 export function Welcome() {
-  const [busy, setBusy] = useState(false);
-  const [mk, setMk] = useState(0);
-  const [ask, setAsk] = useState(false);
   const cloud = cloudConfigured();
+  const [mk, setMk] = useState(0);
+  const [at, setAt] = useState(-1);
+  const [dir, setDir] = useState<1 | -1>(1);
+  const [cert, setCert] = useState(state.profile.certId);
+  const [exam, setExam] = useState(state.profile.packs.find((x) => x.certId === state.profile.certId)?.examDate || '');
+  const [busy, setBusy] = useState('');
+  const [nightly, setNightly] = useState<boolean | null>(null);
+  const reg = state.registry;
 
-  const finish = () => {
-    setProfile({ onboarded: true });
-    go('today', true);
+  useEffect(() => {
+    if (!reg) void loadRegistry().catch(() => undefined);
+  }, []);
+
+  const steps: Step[] = ['cert', 'exam', ...(cloud ? (['save'] as const) : []), ...(aiOpen() ? (['nightly'] as const) : []), 'ready'];
+  const step = at < 0 ? null : steps[Math.min(at, steps.length - 1)];
+  const asks = steps.length - 1;
+
+  const move = (to: number) => {
+    setDir(to > at ? 1 : -1);
+    setAt(to);
+    sfx(to > at ? 'flip' : 'tock');
+    buzz(5);
   };
-  const google = async () => {
+  const next = () => move(at + 1);
+  const prev = () => move(at - 1);
+
+  const google = async (then?: () => void) => {
     if (busy) return;
     sfx('tock');
-    setBusy(true);
+    setBusy('google');
     try {
       const ok = await signIn();
-      setBusy(false);
+      setBusy('');
       if (!ok) return;
       sfx('sheet');
-      if (state.status.ai) setAsk(true);
-      else finish();
+      then?.();
     } catch {
-      setBusy(false);
+      setBusy('');
       toast('ログインできませんでした。もう一度 お試しください');
     }
   };
-  const local = () => {
+
+  const chooseCert = async (e: RegistryEntry) => {
+    if (busy) return;
     sfx('tock');
-    if (state.status.ai && state.status.aiMode === 'anon') setAsk(true);
-    else finish();
+    buzz(5);
+    setCert(e.id);
+    if (e.id === state.profile.certId) return;
+    setBusy(e.id);
+    const pk = await loadPack(e.id).catch(() => null);
+    setBusy('');
+    if (!pk) {
+      sfx('low');
+      setCert(state.profile.certId);
+      toast('問題集を 読みこめませんでした。つながってから、もう一度');
+      return;
+    }
+    studyCert(e);
+    ensureDay(pk);
+    setExam(state.profile.packs.find((x) => x.certId === e.id)?.examDate || '');
   };
 
-  return (
-    <div class="wl z-grain">
-      <div class="wl-col">
-        <div class="wl-brand">
+  const finish = () => {
+    setExamDate(state.profile.certId, exam);
+    setProfile({ onboarded: true, ...(nightly !== null ? { nightly } : {}) });
+    sfx('slash');
+    buzz([10, 40, 20]);
+    go('today', true);
+  };
+
+  useKey((e) => {
+    if (e.key === 'Escape' && at >= 0) prev();
+  });
+
+  /* ---------- the opening ---------- */
+  if (step === null) {
+    return (
+      <div class="wl su-open">
+        <div class="wl-col">
+          <div class="wl-brand">
+            <div class="wl-thin" />
+            <div class="wl-band" />
+            <Mark k={mk} />
+            <button
+              type="button"
+              class="wl-replay"
+              aria-label="ロゴの演出をもう一度"
+              onClick={() => {
+                sfx('intro');
+                setMk(mk + 1);
+              }}
+            />
+            <h1 class="l-word wl-word" aria-label="ZAN">
+              <span class="l-wt" aria-hidden="true">
+                ZAN
+              </span>
+              <span class="l-wb" aria-hidden="true">
+                ZAN
+              </span>
+            </h1>
+          </div>
+          <div class="l-rise wl-copy">
+            <b class="z-min">斬って、進む。</b>
+          </div>
+          <div class="wl-sp" />
+          <div class="l-rise wl-acts">
+            <button type="button" class="l-btn l-bw" onClick={() => move(0)}>
+              はじめる
+            </button>
+            {cloud && (
+              <button type="button" class={`l-txt wl-g${busy ? ' l-busy' : ''}`} onClick={() => void google(() => move(0))} aria-busy={!!busy}>
+                <Google size={16} />
+                {busy ? 'つないでいます…' : 'ログインして 引きつぐ'}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ---------- the setup pages ---------- */
+  const user = state.status.user;
+  const examLeft = exam ? dayDiff(ymd(), exam) : null;
+  const entry = reg?.certs.find((c) => c.id === cert);
+  const certs = reg?.certs.filter((c) => c.status !== 'hidden') || [];
+
+  const page = () => {
+    switch (step) {
+      case 'cert':
+        return (
+          <>
+            <h2 class="z-min su-t">どの資格を 目指す？</h2>
+            <div class="su-list" role="radiogroup" aria-label="資格">
+              {!reg && <div class="su-skel" aria-label="読みこんでいます" />}
+              {certs.map((e) => (
+                <Choice
+                  key={e.id}
+                  on={cert === e.id}
+                  busy={busy === e.id}
+                  title={e.code}
+                  sub={e.name}
+                  mark={<b class="z-min su-code">{e.code.split('-')[0]}</b>}
+                  onClick={() => void chooseCert(e)}
+                />
+              ))}
+              <div class="su-soon" aria-label="ほかの資格は 準備中">
+                <span />
+                <span />
+              </div>
+            </div>
+          </>
+        );
+      case 'exam':
+        return (
+          <>
+            <h2 class="z-min su-t">試験は いつ？</h2>
+            <ExamDate value={exam} onChange={setExam} />
+          </>
+        );
+      case 'save':
+        return (
+          <>
+            <h2 class="z-min su-t">記録は どこに？</h2>
+            <div class="su-list" role="radiogroup" aria-label="記録の 保存先">
+              <Choice on={!user} title="この端末" sub="ログインなし" mark={<DeviceMark />} onClick={() => sfx('tock')} />
+              <Choice
+                on={!!user}
+                busy={busy === 'google'}
+                title={user ? user.name || 'Google' : 'Google で同期'}
+                sub={user ? user.email || 'ログイン中' : 'スマホと PC で 同じ記録'}
+                mark={user?.photo ? <img src={user.photo} alt="" referrerpolicy="no-referrer" /> : <Google size={22} />}
+                onClick={() => (user ? sfx('tock') : void google())}
+              />
+            </div>
+          </>
+        );
+      case 'nightly': {
+        const y = addDays(ymd(), -1);
+        return (
+          <>
+            <h2 class="z-min su-t">毎晩の まとめ</h2>
+            <div class="su-sample" aria-label="まとめの見本">
+              <div class="l-sh">
+                <b class="z-min">{md(y)}</b>
+                <span class="z-tag z-tag-r">{dowName(y)}</span>
+                <span class="l-sp" />
+                <span class="l-sm">{RECAP_HOUR}:00</span>
+              </div>
+              <p class="z-min">朝の欠片は 5問とも正解。縛鎖には 一日で 420。迷った 2問は、あしたの朝の欠片に入れておきました。</p>
+            </div>
+            <div class="su-list su-two" role="radiogroup" aria-label="毎晩のまとめ">
+              <Choice on={nightly === true} title="AI に まとめてもらう" sub={`毎晩 ${RECAP_HOUR}:00 · 個人の手帳だけ`} mark={<span class="su-dot on" />} onClick={() => (setNightly(true), sfx('tock'))} />
+              <Choice on={nightly === false} title="自分で 書く" sub="あとで 変えられます" mark={<span class="su-dot" />} onClick={() => (setNightly(false), sfx('tock'))} />
+            </div>
+          </>
+        );
+      }
+      default:
+        return null;
+    }
+  };
+
+  if (step === 'ready') {
+    return (
+      <div class="su su-ready">
+        <div class="su-rb" aria-hidden="true">
           <div class="wl-thin" />
           <div class="wl-band" />
-          <Mark k={mk} />
-          <button
-            type="button"
-            class="wl-replay"
-            aria-label="ロゴの演出をもう一度"
-            onClick={() => {
-              sfx('intro');
-              setMk(mk + 1);
-            }}
-          />
-          <h1 class="l-word wl-word" aria-label="ZAN">
-            <span class="l-wt" aria-hidden="true">
-              ZAN
-            </span>
-            <span class="l-wb" aria-hidden="true">
-              ZAN
-            </span>
-          </h1>
+          <b class="z-min su-rt">準備、完了。</b>
         </div>
-        <div class="l-rise wl-copy">
-          <b class="z-min">斬って、進む。</b>
-          <span>
-            勉強も、やることも、
-            <br />
-            一つずつ斬って進む。
-          </span>
-        </div>
-        <div class="wl-sp" />
-        <div class="l-rise wl-acts">
-          {cloud && (
-            <button type="button" class={`l-btn l-bw${busy ? ' l-busy' : ''}`} onClick={google} aria-busy={busy}>
-              <Google size={20} />
-              {busy ? 'つないでいます…' : 'Google でログイン'}
+        <div class="su-rcol">
+          <dl class="su-sum">
+            <div>
+              <dt>資格</dt>
+              <dd class="z-min">{entry?.code || state.profile.packs.find((x) => x.certId === cert)?.code}</dd>
+            </div>
+            <div>
+              <dt>試験</dt>
+              <dd class="z-min z-num">{exam ? `${md(exam)}` : '—'}</dd>
+              {exam && <span class="su-sumx">あと {examLeft}日</span>}
+            </div>
+            {cloud && (
+              <div>
+                <dt>記録</dt>
+                <dd>{user ? 'Google' : 'この端末'}</dd>
+              </div>
+            )}
+            {nightly !== null && (
+              <div>
+                <dt>まとめ</dt>
+                <dd>{nightly ? `毎晩 ${RECAP_HOUR}:00` : 'なし'}</dd>
+              </div>
+            )}
+          </dl>
+          <div class="wl-sp" />
+          <div class="su-acts">
+            <button type="button" class="l-btn l-bw" onClick={finish} autoFocus>
+              斬りはじめる
             </button>
-          )}
-          <button type="button" class={cloud ? 'l-txt' : 'l-btn l-bw'} onClick={local}>
-            この端末だけで始める
-          </button>
+            <button type="button" class="l-txt" onClick={prev}>
+              もどる
+            </button>
+          </div>
         </div>
-        <p class="l-rise wl-fine">
-          同期と AI への送信は、はじめはオフです。
-          <br />
-          あとから設定で いつでも変えられます。
-        </p>
       </div>
-      {ask && <NightlySheet onDone={finish} />}
+    );
+  }
+
+  const canNext = step !== 'cert' || !!reg?.certs.some((c) => c.id === cert) || state.profile.packs.length > 0;
+  const nextLabel = step === 'exam' && !exam ? 'まだ 決めていない' : step === 'nightly' && nightly === null ? 'あとで' : '次へ';
+  const plain = nextLabel !== '次へ';
+
+  return (
+    <div class="su">
+      <header class="su-bar">
+        <button type="button" class="su-back" onClick={prev} aria-label="もどる">
+          <ChevL size={18} />
+        </button>
+        <ol class="su-prog" aria-label={`${at + 1} / ${asks}`}>
+          {steps.slice(0, asks).map((s, i) => (
+            <li key={s} class={i < at ? 'done' : i === at ? 'now' : ''} />
+          ))}
+        </ol>
+        <span class="su-cnt z-num" aria-hidden="true">
+          {at + 1}/{asks}
+        </span>
+      </header>
+      <div class={`su-page ${dir > 0 ? 'fwd' : 'bwd'}`} key={step}>
+        {page()}
+      </div>
+      <div class="su-acts">
+        <button type="button" class={`l-btn ${plain ? 'su-plain' : 'l-bw'}`} onClick={next} disabled={!canNext}>
+          {nextLabel}
+        </button>
+      </div>
     </div>
   );
 }
+
