@@ -1,0 +1,80 @@
+/* 設定: rows with a hairline, the exact list of what goes out under each AI switch, light cards for choices */
+.st { overflow-x: clip; }
+@keyframes stIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+@keyframes stFlash { 0%, 35% { background: rgba(227, 64, 43, .2); box-shadow: inset 3px 0 0 var(--r); } 100% { background: rgba(243, 241, 236, .04); box-shadow: inset 3px 0 0 rgba(227, 64, 43, 0); } }
+
+.st-back { height: 44px; padding: 0 12px 0 8px; border: none; background: transparent; display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 900; color: var(--w); transition: transform .2s var(--spring); }
+.st-back:active { transform: scale(.92); transition-duration: .05s; }
+.st-top { padding: 6px 16px 0; }
+.st-title { display: block; font-size: 46px; line-height: .8; font-weight: 800; letter-spacing: .04em; }
+.st-sec { margin-top: 38px; }
+
+/* rows: what it is on the left, the control on the right; .top rows put the controls on their own line */
+.st-row { min-height: 64px; padding: 12px 16px; display: flex; align-items: center; gap: 14px; box-shadow: inset 0 -1px 0 rgba(243, 241, 236, .07); scroll-margin: 90px; }
+.st-row.top { flex-wrap: wrap; row-gap: 12px; }
+.st-row.top > .st-rt { flex-basis: 100%; }
+.st-row:has(+ .st-detail), .st-row:has(+ .st-log) { box-shadow: none; }
+.st-rt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.st-rt > b { font-size: 15px; font-weight: 700; line-height: 1.35; }
+.st-rt > span { font-size: 12px; font-weight: 500; line-height: 1.6; color: var(--g2); }
+.st-sw { height: 44px; margin-right: -4px; padding-left: 8px; }
+.st-sw:disabled { opacity: .35; }
+
+/* exactly what is sent */
+.st-detail { padding: 0 16px 14px; box-shadow: inset 0 -1px 0 rgba(243, 241, 236, .07); }
+.st-sends { padding: 11px 14px 12px; background: rgba(243, 241, 236, .04); clip-path: polygon(0 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%); }
+.st-detail.flash .st-sends { animation: stFlash 1.8s ease-out both; }
+.st-sends > b { font-size: 10.5px; font-weight: 900; letter-spacing: .16em; color: var(--g2); }
+.st-sends ul { margin: 6px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.st-sends li { position: relative; padding-left: 16px; font-size: 12px; font-weight: 500; line-height: 1.6; color: var(--g1); }
+.st-sends li::before { content: ""; position: absolute; left: 1px; top: .55em; width: 7px; height: 2px; background: var(--r); transform: rotate(-30deg); }
+.st-sends p { margin-top: 9px; padding-left: 10px; font-size: 12px; font-weight: 700; line-height: 1.6; color: var(--w); box-shadow: inset 2px 0 0 var(--w); }
+
+/* light cards for a choice; the red-ruled one for deleting */
+.st-card { margin: 4px 16px 14px; padding: 16px 16px 14px; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%); animation: stIn .24s cubic-bezier(.2, .9, .25, 1.05) both; }
+.st-card > b { display: block; font-size: 15px; font-weight: 900; line-height: 1.45; }
+.st-card > p { margin-top: 6px; font-size: 12.5px; font-weight: 500; line-height: 1.75; color: var(--g4); }
+.st-acts { margin-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.st-acts .z-txb { margin-left: auto; }
+.st-warn { background: rgba(227, 64, 43, .1); color: var(--w); box-shadow: inset 4px 0 0 var(--r); clip-path: none; }
+.st-warn > p { color: var(--g1); }
+.st-kill { position: relative; height: 38px; padding: 0 24px; border: none; background: var(--r); color: #FFF; font-size: 13.5px; font-weight: 900; letter-spacing: .08em; clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); transition: transform .2s var(--spring); }
+.st-kill:active { transform: scale(.94); transition-duration: .04s; }
+.st-del.on { background: var(--r); color: #FFF; box-shadow: none; }
+
+.st-note { margin: 12px 16px 0; font-size: 11.5px; font-weight: 700; line-height: 1.7; color: var(--g3); }
+.st-note em { display: block; margin-top: 4px; font-style: normal; color: var(--r); }
+
+/* the AI count this month */
+.st-ai0 { margin: 14px 16px 6px; padding: 12px 14px; font-size: 12.5px; font-weight: 700; line-height: 1.7; color: var(--g1); box-shadow: inset 0 0 0 1px rgba(243, 241, 236, .12); }
+.st-use { margin: 16px 16px 4px; display: flex; align-items: baseline; gap: 6px; font-size: 12px; font-weight: 900; color: var(--g2); white-space: nowrap; }
+.st-use > b { font-size: 28px; font-weight: 800; line-height: 1; color: var(--w); }
+.st-useb { position: relative; flex: 1; align-self: center; margin-left: 12px; height: 6px; background: rgba(243, 241, 236, .12); transform: skewX(-24deg); overflow: hidden; }
+.st-useb i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--w); transition: width .6s cubic-bezier(.2, .8, .2, 1); }
+.st-count { flex: none; font-family: 'Shippori Mincho B1', serif; font-size: 16px; font-weight: 800; color: var(--g1); }
+.st-log { margin: 0; padding: 0 16px 12px; list-style: none; box-shadow: inset 0 -1px 0 rgba(243, 241, 236, .07); }
+.st-log li { display: flex; gap: 10px; padding: 3px 0; font-size: 12px; font-weight: 500; line-height: 1.55; color: var(--g1); }
+.st-log li > span { flex: none; color: var(--g3); }
+
+/* dark chips for the monthly limit */
+.st-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.st-chip { position: relative; min-width: 50px; height: 36px; padding: 0 13px; border: none; background: transparent; display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-family: 'Shippori Mincho B1', serif; font-size: 16px; font-weight: 800; color: var(--g1); isolation: isolate; transition: transform .2s var(--spring), color .1s; }
+.st-chip::before { content: ""; position: absolute; inset: 0; z-index: -1; box-shadow: inset 0 0 0 1.5px rgba(243, 241, 236, .24); clip-path: polygon(7px 0, 100% 0, calc(100% - 7px) 100%, 0 100%); transition: background-color .12s; }
+.st-chip:hover::before { box-shadow: inset 0 0 0 1.5px rgba(243, 241, 236, .5); }
+.st-chip.on { color: var(--k0); }
+.st-chip.on::before { background: var(--w); box-shadow: none; }
+.st-chip:active { transform: scale(.93); transition-duration: .04s; }
+.st-chip small { font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 10.5px; font-weight: 900; }
+
+.st-date { flex: none; display: flex; align-items: center; gap: 2px; }
+.st-inp { height: 40px; padding: 0 4px; border: none; border-bottom: 2px solid var(--w); border-radius: 0; outline: none; background: transparent; font-size: 15px; font-weight: 700; color: var(--w); color-scheme: dark; }
+.st-inp:focus-visible { outline: 2px solid var(--w); outline-offset: 2px; }
+.st-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.st-foot { margin: 44px 16px 0; padding-top: 16px; font-size: 11.5px; font-weight: 700; line-height: 1.8; color: var(--g3); box-shadow: inset 0 1px 0 rgba(243, 241, 236, .1); }
+.st-foot > span { display: block; margin-top: 10px; font-size: 11px; letter-spacing: .08em; color: var(--g4); }
+
+@media (prefers-reduced-motion: reduce) {
+  .st-card, .st-detail.flash .st-sends { animation: none !important; }
+  .st-detail.flash .st-sends { box-shadow: inset 3px 0 0 var(--r); }
+}
