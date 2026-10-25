@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Question } from '../src/core/types';
-import { backTag, domainOf, domainRates, forecast, isCorrect, newProgress, orderSet, pickDrill, pickKakera, pickMock, qStates, recordAnswer, shownStreak, stumbles } from '../src/core/study';
+import { backTag, domainOf, domainRates, forecast, isCorrect, newProgress, orderSet, pickDrill, pickNow, pickKakera, pickMock, qStates, recordAnswer, shownStreak, stumbles } from '../src/core/study';
 import { UNLOCK_LV } from '../src/core/game';
 import { addDays } from '../src/core/util';
 import { DAY, answers, pack } from './helpers';
@@ -188,5 +188,29 @@ describe('the question bank', () => {
     expect('mock' in UNLOCK_LV).toBe(false);
     expect(pickMock(pack, 50)).toHaveLength(50);
     expect(pickMock(pack, 999)).toHaveLength(pack.questions.length);
+  });
+});
+
+describe('what a fight asks now', () => {
+  it('puts missed questions first, keeps one from the shadow\'s topic and at most two per topic', () => {
+    const sp = newProgress();
+    const missed = pack.questions.filter((x) => x.topicId === 't-rag').slice(0, 3);
+    for (const m of missed) recordAnswer(sp, m, false, 'sure', 5000, [], 'drill', DAY, 0);
+    const foe = 't-speech';
+    const out = pickNow(pack, sp, DAY, 4, { foe });
+    expect(out).toHaveLength(4);
+    expect(out.filter((x) => x.why === 'miss')).toHaveLength(2);
+    expect(out.some((x) => x.q.topicId === foe)).toBe(true);
+    const per: Record<string, number> = {};
+    for (const x of out) per[x.q.topicId] = (per[x.q.topicId] || 0) + 1;
+    expect(Math.max(...Object.values(per))).toBeLessThanOrEqual(2);
+  });
+
+  it('does not ask again what was just answered right today when there is other work', () => {
+    const sp = newProgress();
+    const done = pack.questions.filter((x) => x.topicId === 't-agents');
+    for (const d of done) recordAnswer(sp, d, true, 'sure', 5000, d.answer, 'drill', DAY, 0);
+    const out = pickNow(pack, sp, DAY, 4, { foe: 't-agents' });
+    expect(out.filter((x) => x.q.topicId === 't-agents').length).toBeLessThanOrEqual(1);
   });
 });

@@ -295,3 +295,52 @@ export function orderSet(pk: Pack, sp: StudyProgress, today: string, qs: Questio
   const rank = (q: Question) => (st.get(q.id) === 'new' ? 0 : st.get(q.id) === 'ng' ? 1 : 2);
   return shuffle(qs).sort((a, b) => rank(a) - rank(b) || (rank(a) === 0 ? at.get(a.id)! - at.get(b.id)! : weakness(sp, b, today) - weakness(sp, a, today)));
 }
+
+/* ---------- 挑む: what is needed now, judged on this device ---------- */
+export type NeedWhy = 'miss' | 'due' | 'new' | 'foe' | 'weak';
+export const NEED_LABEL: Record<NeedWhy, string> = { miss: 'まちがえた', due: '復習の日', new: 'まだ', foe: '敵の分野', weak: '弱い' };
+
+/**
+ * The questions a fight should ask now, from the whole bank: missed ones first (more so when due), then the ones
+ * whose review day has come, then unasked ones in learned topics and heavy chapters; the shadow's topic is
+ * favoured and gets at least one. With the exam close (two weeks or less) the chapter weights count for more.
+ * Answered right today counts against a question; at most two come from one topic.
+ */
+export function pickNow(pk: Pack, sp: StudyProgress, today: string, n: number, opts: { foe?: string; open?: Set<string>; daysLeft?: number | null } = {}) {
+  const st = qStates(pk, sp);
+  const wt = new Map(pk.topics.map((t) => [t.id, pk.domains.find((d) => d.id === t.domainId)]));
+  const near = opts.daysLeft !== null && opts.daysLeft !== undefined && opts.daysLeft <= 14;
+  const why = (q: Question): NeedWhy => {
+    const s = st.get(q.id);
+    const c = sp.cards[q.id];
+    if (s === 'ng') return 'miss';
+    if (c && c.due <= today) return 'due';
+    if (s === 'new') return 'new';
+    return q.topicId === opts.foe ? 'foe' : 'weak';
+  };
+  const score = (q: Question) => {
+    const c = sp.cards[q.id];
+    const d = wt.get(q.topicId);
+    const w = d ? (d.weightMin + d.weightMax) / 2 : 15;
+    const k = why(q);
+    let s = k === 'miss' ? 4 + (c && c.due <= today ? 1 : 0) : k === 'due' ? 2.5 : k === 'new' ? (!opts.open?.size || opts.open.has(q.topicId) ? 1.5 : 0.4) : weakness(sp, q, today) * 0.3;
+    s += (w / 30) * (near ? 1.6 : 0.6);
+    if (q.topicId === opts.foe) s += 1.5;
+    if (c && c.lastAt === today && st.get(q.id) === 'ok') s -= 3;
+    return s + Math.random() * 0.4;
+  };
+  const ranked = pk.questions.map((q) => ({ q, s: score(q) })).sort((a, b) => b.s - a.s);
+  const out: Question[] = [];
+  const per: Record<string, number> = {};
+  const take = (q: Question) => {
+    if (out.length >= n || out.includes(q) || (per[q.topicId] || 0) >= 2) return;
+    out.push(q);
+    per[q.topicId] = (per[q.topicId] || 0) + 1;
+  };
+  const foeFirst = ranked.find((r) => r.q.topicId === opts.foe);
+  ranked.forEach((r) => take(r.q));
+  if (foeFirst && opts.foe && !out.some((q) => q.topicId === opts.foe)) out[out.length - 1] = foeFirst.q;
+  // a small pack can run out under the two-per-topic rule
+  ranked.forEach((r) => out.length < n && !out.includes(r.q) && out.push(r.q));
+  return out.map((q) => ({ q, why: why(q) }));
+}
