@@ -6,14 +6,14 @@ import type { Conf, Pack, Question, Task } from '../core/types';
 import { state } from '../core/store';
 import { aiLeft, answer, finishStudyTask, type Outcome } from '../core/actions';
 import { topicShort } from '../core/enemy';
-import { domainOf, domainQuestions, forecast, isCorrect, pickDrill, pickKakera, pickMock, progress, settled } from '../core/study';
+import { backTag, domainOf, domainQuestions, forecast, isCorrect, pickDrill, pickKakera, pickMock, progress, settled } from '../core/study';
 import { hasLearn, lessonShort, lessonState, openTopics } from '../core/learn';
 import { packOf, topicById } from '../core/pack';
 import { levelFromTotal, need, title, unlocked, UNLOCK_LV } from '../core/game';
 import { aiReady, askTutor } from '../core/ai';
 import { doneOn } from '../core/tasks';
 import { BUZZ, buzz, sfx } from '../core/sfx';
-import { addDays, shuffle } from '../core/util';
+import { shuffle } from '../core/util';
 import { celebrate } from '../ui/slash';
 import { back } from '../ui/router';
 import { useKey } from '../ui/hooks';
@@ -161,6 +161,8 @@ const WORDS: [number, string][] = [
 function Questions({ pk, p, date }: { pk: Pack; p: Plan; date: string }) {
   const sp = progress(state.p, pk.id);
   const before = useRef({ total: state.p.game.total, settled: settled(sp, p.scope), forecast: forecast(pk, sp.log) }).current;
+  // read before this session's answers are logged, so a tag doesn't change under the feedback
+  const backs = useRef(p.qs.map((x) => backTag(sp, x.id, date))).current;
   const R = useRef<Run>({
     phase: 'q',
     qi: 0,
@@ -200,10 +202,6 @@ function Questions({ pk, p, date }: { pk: Pack; p: Plan; date: string }) {
   const boss = state.p.boss.cur;
   const text = (id: string) => q.options.find((o) => o.id === id)?.text ?? '';
   const num = (id: string) => R.opts.indexOf(id) + 1;
-  const weak = (() => {
-    const y = addDays(date, -1);
-    return sp.log.some((a) => a.q === q.id && a.d === y && (!a.ok || a.conf === 'guess'));
-  })();
 
   const submit = (pick: string[]) => {
     if (R.phase !== 'q' || !pick.length) return;
@@ -334,7 +332,7 @@ function Questions({ pk, p, date }: { pk: Pack; p: Plan; date: string }) {
             <div key={R.qi} class="ss-q">
               <div class="ss-qh">
                 <span class="ss-qn">問{R.qi + 1}</span>
-                {weak && <span class="z-tag z-tag-r ss-weak">昨日迷った</span>}
+                {backs[R.qi] && <span class="z-tag z-tag-r ss-weak">{backs[R.qi]}</span>}
                 {multi && <span class="k-mtag">{q.answer.length}つ えらぶ</span>}
                 <span class="k-sp" />
                 {R.phase === 'q' && (

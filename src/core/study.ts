@@ -69,6 +69,21 @@ export function recordAnswer(sp: StudyProgress, q: Question, ok: boolean, conf: 
   return { xp, note, card: c, firstToday };
 }
 
+/**
+ * The tag on a question that comes back after a miss or a guess, from the last time it was asked: 今日 / 昨日 /
+ * 前に まちがえた (or 迷った). Read it before the session logs its own answers.
+ */
+export function backTag(sp: StudyProgress, qId: string, today: string) {
+  for (let i = sp.log.length - 1; i >= 0; i--) {
+    const a = sp.log[i];
+    if (a.q !== qId) continue;
+    if (a.ok && a.conf !== 'guess') return '';
+    const when = a.d === today ? '今日' : a.d === addDays(today, -1) ? '昨日' : '前に';
+    return `${when} ${a.ok ? '迷った' : 'まちがえた'}`;
+  }
+  return '';
+}
+
 /* ---------- statistics ---------- */
 export function accuracy(sp: StudyProgress, qs: Question[]) {
   let seen = 0;
@@ -181,7 +196,10 @@ export function pickKakera(pk: Pack, sp: StudyProgress, today: string, n = 5, op
   weak.forEach(push);
   due.forEach(push);
   fresh.forEach(push);
-  shuffle(pool).forEach(push);
+  // when the learned topics run short, the questions asked longest ago fill in, not the ones just answered
+  shuffle(pool)
+    .sort((a, b) => (sp.cards[a.id]?.lastAt ?? '').localeCompare(sp.cards[b.id]?.lastAt ?? ''))
+    .forEach(push);
   return out;
 }
 
@@ -194,23 +212,29 @@ export function pickMock(pk: Pack, n = 20) {
   const raw = weights.map((w) => (w / sum) * want);
   const take = raw.map((r, i) => Math.min(pools[i].length, Math.floor(r)));
   const order = raw.map((_, i) => i).sort((a, b) => (raw[b] - Math.floor(raw[b])) - (raw[a] - Math.floor(raw[a])));
-  for (let k = 0; take.reduce((a, t) => a + t, 0) < want && k < order.length * 4; k++) {
-    const i = order[k % order.length];
-    if (take[i] < pools[i].length) take[i]++;
+  // the rest goes round the domains that still have questions, the largest remainders first
+  for (let left = want - take.reduce((a, t) => a + t, 0); left > 0; ) {
+    const room = order.filter((i) => take[i] < pools[i].length);
+    if (!room.length) break;
+    for (const i of room) {
+      if (!left) break;
+      take[i]++;
+      left--;
+    }
   }
   return shuffle(pools.flatMap((l, i) => l.slice(0, take[i])));
 }
 
-/** Questions for a short drill in a topic or a domain, weakest first. */
+/** Questions for a short drill in a topic or a domain, weakest first. A small topic is filled from its domain, after its own. */
 export function pickDrill(pk: Pack, sp: StudyProgress, today: string, scope: { topicId?: string; domainId?: string }, n = 3) {
-  let qs = scope.topicId ? pk.questions.filter((q) => q.topicId === scope.topicId) : scope.domainId ? domainQuestions(pk, scope.domainId) : pk.questions;
+  const weakFirst = (qs: Question[]) => shuffle(qs).sort((a, b) => weakness(sp, b, today) - weakness(sp, a, today));
+  const own = scope.topicId ? pk.questions.filter((q) => q.topicId === scope.topicId) : scope.domainId ? domainQuestions(pk, scope.domainId) : pk.questions;
+  let qs = weakFirst(own);
   if (qs.length < n && scope.topicId) {
     const d = pk.topics.find((t) => t.id === scope.topicId)?.domainId;
-    if (d) qs = qs.concat(domainQuestions(pk, d).filter((q) => !qs.includes(q)));
+    if (d) qs = qs.concat(weakFirst(domainQuestions(pk, d).filter((q) => !own.includes(q))));
   }
-  return shuffle(qs)
-    .sort((a, b) => weakness(sp, b, today) - weakness(sp, a, today))
-    .slice(0, n);
+  return qs.slice(0, n);
 }
 
 /** Wrong answers yesterday per topic: the basis of "きのう 2回 迷ったところ". */
