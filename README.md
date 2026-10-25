@@ -49,6 +49,8 @@ AI の関数（`api/`）を手元で試すときは `npx vercel dev` を使い�
 | `ZAN_ALLOW_ANON_AI` | `1` で、ログインなしでも AI を使える（IP ごとの上限つき）。Firebase を設定しないときの試用向け |
 | `ZAN_AI_MONTHLY` `ZAN_AI_MONTHLY_ANON` `ZAN_AI_MONTHLY_TOTAL` | 1人あたり・ログインなし・全員あわせての月の上限（既定 120・20・3000）。1分に 6回までの制限もあります |
 
+AI を使うには、`ANTHROPIC_API_KEY` に加えて、だれが使えるかの設定（Firebase の値か `ZAN_ALLOW_ANON_AI=1`）が必要です。どちらもないと、キーがあっても AI はオフのままです。
+
 Firebase を使うときは、Authentication で Google を有効にし、承認済みドメインに公開先を足してから、Firestore のルールを反映します。
 
 ```sh
