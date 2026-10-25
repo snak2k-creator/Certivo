@@ -11,7 +11,7 @@ function serviceWorker(): Plugin {
     generateBundle(_opts, bundle) {
       const built = Object.keys(bundle).filter((f) => !f.endsWith('.map'));
       const certs = readdirSync('public/certs').map((f) => 'certs/' + f);
-      const icons = ['icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'];
+      const icons = ['favicon.ico', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'];
       const precache = ['./', 'manifest.webmanifest', ...certs, ...icons, ...built.filter((f) => f !== 'index.html')];
       const hash = createHash('sha256');
       hash.update(precache.join('\n'));
