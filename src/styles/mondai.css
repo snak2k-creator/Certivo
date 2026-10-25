@@ -1,0 +1,80 @@
+/* 問題集: the two titles shared with 覚える, the map of every question, the mock exam, the three ways through
+   all of it, and each chapter and unit whole */
+.ln-tabs { display: flex; align-items: flex-end; gap: 16px; min-width: 0; }
+.ln-tabs > a { position: relative; white-space: nowrap; font-size: 24px; line-height: .9; font-weight: 800; letter-spacing: .04em; color: var(--g3); text-decoration: none; transition: color .12s, transform .2s var(--spring); }
+.ln-tabs > a.on { font-size: 42px; line-height: .8; color: var(--w); }
+.ln-tabs > a:not(.on):hover { color: var(--g1); }
+.ln-tabs > a:not(.on):active { transform: scale(.94); transition-duration: .05s; }
+.ln-tabs > a.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: -10px; height: 4px; background: var(--r); transform: skewX(-24deg); }
+
+/* the map: one cell per question, a row per chapter */
+.mn-cells { display: flex; flex-wrap: wrap; gap: 3px; }
+.mn-cells > i { display: block; width: 7px; height: 14px; background: rgba(234, 231, 224, .12); transform: skewX(-24deg); }
+.mn-cells > i.ok { background: var(--w); }
+.mn-cells > i.ng { background: var(--r); }
+.mn-cells.sm > i { width: 5px; height: 11px; }
+.mn-map { margin: 26px 16px 0; padding: 12px 12px 12px 14px; display: flex; flex-direction: column; gap: 7px; background: var(--k2); text-decoration: none; clip-path: polygon(0 6px, 100% 0, 100% 100%, 0 100%); transition: background-color .12s; }
+.mn-map:hover { background: #1E1E21; }
+.mn-map:active { background: var(--k4); }
+.mn-key { margin: 8px 16px 0; display: flex; align-items: center; gap: 6px; font-size: 10.5px; font-weight: 700; color: var(--g2); }
+.mn-key > i { width: 6px; height: 10px; margin-left: 6px; background: rgba(234, 231, 224, .12); transform: skewX(-24deg); }
+.mn-key > i:first-child { margin-left: 0; }
+.mn-key > i.ok { background: var(--w); }
+.mn-key > i.ng { background: var(--r); }
+
+/* the mock exam */
+.mn-mock { position: relative; margin-top: 16px; padding: 30px 16px 24px; background: var(--k1); clip-path: polygon(0 18px, 100% 0, 100% calc(100% - 18px), 0 100%); overflow: hidden; isolation: isolate; }
+.mn-mgo { margin-top: 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.mn-mgo > .z-bw { min-width: 128px; }
+.mn-mgo > .z-bo { height: 42px; padding: 0 14px; }
+
+/* all of it, the ones not asked, the ones missed */
+.mn-modes { margin: 14px 16px 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.mn-md { min-height: 104px; padding: 12px 10px 11px; display: flex; flex-direction: column; gap: 2px; color: inherit; text-decoration: none; box-shadow: inset 0 0 0 1.5px rgba(234, 231, 224, .16); transition: transform .2s var(--spring), box-shadow .12s, background-color .12s; }
+a.mn-md:hover { box-shadow: inset 0 0 0 1.5px rgba(234, 231, 224, .42); }
+a.mn-md:active { transform: scale(.95); background: rgba(234, 231, 224, .05); transition-duration: .04s; }
+.mn-md > b { font-size: 34px; line-height: 1; font-weight: 800; }
+.mn-md > span { margin-top: auto; font-size: 13px; line-height: 1.3; font-weight: 900; }
+.mn-md > small { font-size: 10.5px; line-height: 1.4; font-weight: 700; color: var(--g2); }
+.mn-md.red { background: var(--r); color: #FFF; box-shadow: none; }
+.mn-md.red > small { color: rgba(255, 255, 255, .78); }
+a.mn-md.red:hover { background: #DA5843; box-shadow: none; }
+.mn-md.off { color: var(--g3); box-shadow: inset 0 0 0 1px rgba(234, 231, 224, .08); }
+.mn-md.off > small { color: var(--g4); }
+
+/* chapters and their units */
+.mn .ln-sec { margin-top: 30px; }
+.mn-ch { margin: 10px 16px 0; }
+.mn-chh { min-height: 58px; display: flex; align-items: center; gap: 12px; color: inherit; text-decoration: none; box-shadow: inset 0 -1px 0 rgba(234, 231, 224, .12); transition: background-color .12s; }
+.mn-chh:hover { background: rgba(234, 231, 224, .025); }
+.mn-chh:active { background: rgba(234, 231, 224, .06); }
+.mn-chh > svg { flex: none; color: var(--g2); }
+.mn-chn { flex: none; width: 30px; font-style: normal; font-size: 20px; font-weight: 800; color: var(--r); }
+.mn-cht { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.mn-cht > b { font-size: 14.5px; line-height: 1.35; font-weight: 900; }
+.mn-cht > span { font-size: 11px; font-weight: 700; color: var(--g2); }
+.mn-chs { flex: none; font-family: 'Shippori Mincho B1', serif; font-size: 18px; font-weight: 800; }
+.mn-chs > small { font-size: 11px; color: var(--g2); }
+.mn-units { margin: 0; padding: 0 0 0 42px; list-style: none; }
+.mn-un { min-height: 44px; display: flex; align-items: center; gap: 12px; color: inherit; text-decoration: none; box-shadow: inset 0 -1px 0 rgba(234, 231, 224, .06); transition: background-color .12s, transform .2s var(--spring); }
+.mn-un:hover { background: rgba(234, 231, 224, .025); }
+.mn-un:active { background: rgba(234, 231, 224, .06); transform: translateX(3px); transition-duration: .04s; }
+.mn-unt { flex: 1; min-width: 0; font-size: 12.5px; font-weight: 700; color: #D9D7D2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mn-un .mn-cells { flex: none; flex-wrap: nowrap; }
+.mn-uns { flex: none; width: 34px; text-align: right; font-size: 11px; font-weight: 700; color: var(--g2); }
+
+@media (max-width: 360px) {
+  .mn-md > b { font-size: 28px; }
+  .ln-tabs { gap: 12px; }
+  .ln-tabs > a { font-size: 20px; }
+  .ln-tabs > a.on { font-size: 36px; }
+}
+.is-pc .ln-tabs > a { font-size: 28px; }
+.is-pc .ln-tabs > a.on { font-size: 46px; }
+.ln-tr .ln-cs { white-space: nowrap; }
+.is-pc .mn-map { margin-top: 30px; }
+@media (min-width: 1280px) {
+  .pc-page > .m-page.mn .ln-b > .ln-sec:first-child { margin-top: calc(var(--safe-t) + 26px); }
+  .mn-cells > i { width: 8px; height: 16px; }
+  .mn-cells.sm > i { width: 6px; height: 12px; }
+}

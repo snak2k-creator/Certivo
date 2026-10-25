@@ -1,4 +1,5 @@
-// Bottom navigation on phones and tablets. 図鑑 opens from 成長 and 挑む; 覚える takes its place here.
+// Bottom navigation on phones and tablets. 図鑑 opens from 成長 and 挑む; 覚える takes its place here, and holds
+// 問題集 beside it.
 import type { FunctionComponent } from 'preact';
 import { state } from '../core/store';
 import { isLearnTask } from '../core/learn';
@@ -8,7 +9,7 @@ import { killedEntry } from './Boss';
 
 const ITEMS: { r: string; label: string; icon: FunctionComponent; also?: string[] }[] = [
   { r: 'today', label: '今日', icon: NavToday },
-  { r: 'learn', label: '覚える', icon: NavLearn },
+  { r: 'learn', label: '覚える', icon: NavLearn, also: ['mondai'] },
   { r: 'battle', label: '挑む', icon: NavBattle },
   { r: 'tasks', label: 'やること', icon: NavTasks },
   { r: 'growth', label: '成長', icon: NavGrowth, also: ['zukan'] },

@@ -134,6 +134,11 @@
 .k-iname b { display: block; margin-top: 6px; font-size: 40px; line-height: 1.05; font-weight: 800; color: #FFF; letter-spacing: .04em; text-shadow: 4px 4px 0 var(--k0); white-space: nowrap; animation: kSlam .42s .56s cubic-bezier(.2, 1.4, .4, 1) both; }
 .k-iline { position: absolute; left: 22px; right: 22px; top: 596px; font-size: 18px; line-height: 1.55; font-weight: 800; color: #FFF; letter-spacing: .02em; animation: kRise .4s .8s both; }
 .k-iborn { position: absolute; left: 22px; right: 22px; top: 658px; font-size: 12px; font-weight: 700; color: var(--g2); animation: kRise .4s .86s both; }
+.k-ineed { position: absolute; left: 22px; right: 22px; top: 652px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; animation: kRise .4s .86s both; }
+.k-inl { margin-right: 4px; font-size: 11px; font-weight: 900; letter-spacing: .1em; color: var(--g1); }
+.k-inc { height: 22px; padding: 0 8px; display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 900; color: var(--w); box-shadow: inset 0 0 0 1px rgba(234, 231, 224, .26); }
+.k-inc > b { font-size: 12px; }
+.k-inc.miss { background: var(--r); color: #FFF; box-shadow: none; }
 .k-istats { position: absolute; left: 22px; right: 22px; top: 690px; display: flex; animation: kRise .4s .92s both; }
 .k-istats > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; padding-left: 14px; box-shadow: inset 1.5px 0 0 rgba(234, 231, 224, .16); }
 .k-istats > div:first-child { padding-left: 0; box-shadow: none; }

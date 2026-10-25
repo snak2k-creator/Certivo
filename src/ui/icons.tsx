@@ -112,6 +112,13 @@ export const NavTasks = () => (
     <path d="M7.5 9H16.5M7.5 13H16.5M7.5 17H13" stroke="#121214" stroke-width="2" />
   </svg>
 );
+/** 問題集: the bank as slanted cells, like its map. */
+export const NavBank = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M6 3H12L10 11H4Z M14 3H20L18 11H12Z M4 13H10L8 21H2Z" fill="currentColor" />
+    <path d="M12.6 13H18.6L16.6 21H10.6Z" fill="none" stroke="currentColor" stroke-width="1.8" />
+  </svg>
+);
 export const NavZukan = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
     <path d="M3 5H14V22H3Z" fill="currentColor" />

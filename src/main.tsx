@@ -12,6 +12,8 @@ import './styles/zukan.css';
 import './styles/growth.css';
 import './styles/settings.css';
 import './styles/learn.css';
+import './styles/mondai.css';
+import './styles/exam.css';
 import './styles/pc.css';
 import { App } from './app';
 import { setStatus, state } from './core/store';

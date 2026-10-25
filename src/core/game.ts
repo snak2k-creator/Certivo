@@ -25,14 +25,16 @@ export function title(lv: number) {
   return t;
 }
 
-/** What each level opens. Every line here is something the app really does from that level on. */
+/**
+ * What each level opens. Every line here is something the app really does from that level on. Questions are never
+ * behind a level: the whole bank and the mock exam are open from the first day (問題集).
+ */
 export const UNLOCKS: Record<number, [string, string]> = {
   3: ['斬り跡の暦', '一日ずつの 斬った数が、成長の暦に 残ります'],
   5: ['隠して 思い出す', '図鑑の決め手を 隠して、思い出す練習が できます'],
   9: ['戻ってくる強敵', '倒しそびれた影が、次の週に 強くなって 戻ります'],
-  10: ['模試', '本番と同じ 配分の 20問で、腕だめしが できます'],
 };
-export const UNLOCK_LV = { calendar: 3, recall: 5, strong: 9, mock: 10 } as const;
+export const UNLOCK_LV = { calendar: 3, recall: 5, strong: 9 } as const;
 export const unlocked = (lv: number, what: keyof typeof UNLOCK_LV) => lv >= UNLOCK_LV[what];
 export const nextUnlock = (lv: number) => {
   const keys = Object.keys(UNLOCKS).map(Number).sort((a, b) => a - b);

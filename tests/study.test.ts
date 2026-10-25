@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Question } from '../src/core/types';
-import { backTag, domainOf, domainRates, forecast, isCorrect, newProgress, pickDrill, pickKakera, pickMock, recordAnswer, shownStreak, stumbles } from '../src/core/study';
+import { backTag, domainOf, domainRates, forecast, isCorrect, newProgress, orderSet, pickDrill, pickNow, pickKakera, pickMock, qStates, recordAnswer, shownStreak, stumbles } from '../src/core/study';
+import { UNLOCK_LV } from '../src/core/game';
 import { addDays } from '../src/core/util';
 import { DAY, answers, pack } from './helpers';
 
@@ -153,5 +154,63 @@ describe('picking questions', () => {
     sp.log.push({ q: one.id, d: DAY, ok: true, conf: 'guess', ms: 1, pick: one.answer, mode: 'drill' });
     sp.log.push({ q: one.id, d: DAY, ok: true, conf: 'sure', ms: 1, pick: one.answer, mode: 'drill' });
     expect(stumbles(pack, sp, DAY)).toEqual({ [one.topicId]: 2 });
+  });
+});
+
+describe('the question bank', () => {
+  it('knows each question as not asked, right, or missed (a lucky guess counts as missed)', () => {
+    const sp = newProgress();
+    const [a, b, c] = pack.questions;
+    recordAnswer(sp, a, true, 'sure', 5000, a.answer, 'drill', DAY, 0);
+    recordAnswer(sp, b, false, 'sure', 5000, [], 'drill', DAY, 0);
+    recordAnswer(sp, c, true, 'guess', 5000, c.answer, 'drill', DAY, 0);
+    const st = qStates(pack, sp);
+    expect([st.get(a.id), st.get(b.id), st.get(c.id), st.get(pack.questions[3].id)]).toEqual(['ok', 'ng', 'ng', 'new']);
+    expect(st.size).toBe(pack.questions.length);
+    // fixed by answering right later
+    recordAnswer(sp, b, true, 'sure', 5000, b.answer, 'drill', DAY, 0);
+    expect(qStates(pack, sp).get(b.id)).toBe('ok');
+  });
+
+  it('goes through a whole set: unasked in book order first, then the missed ones, then the rest', () => {
+    const sp = newProgress();
+    const [a, b] = pack.questions;
+    recordAnswer(sp, a, true, 'sure', 5000, a.answer, 'drill', DAY, 0);
+    recordAnswer(sp, b, false, 'sure', 5000, [], 'drill', DAY, 0);
+    const out = orderSet(pack, sp, DAY, pack.questions);
+    expect(out).toHaveLength(pack.questions.length);
+    expect(new Set(out.map((x) => x.id)).size).toBe(pack.questions.length);
+    expect(out.slice(0, pack.questions.length - 2).map((x) => x.id)).toEqual(pack.questions.slice(2).map((x) => x.id));
+    expect(out.slice(-2).map((x) => x.id)).toEqual([b.id, a.id]);
+  });
+
+  it('keeps the mock exam open from level 1, at any length up to the whole pack', () => {
+    expect('mock' in UNLOCK_LV).toBe(false);
+    expect(pickMock(pack, 50)).toHaveLength(50);
+    expect(pickMock(pack, 999)).toHaveLength(pack.questions.length);
+  });
+});
+
+describe('what a fight asks now', () => {
+  it('puts missed questions first, keeps one from the shadow\'s topic and at most two per topic', () => {
+    const sp = newProgress();
+    const missed = pack.questions.filter((x) => x.topicId === 't-rag').slice(0, 3);
+    for (const m of missed) recordAnswer(sp, m, false, 'sure', 5000, [], 'drill', DAY, 0);
+    const foe = 't-speech';
+    const out = pickNow(pack, sp, DAY, 4, { foe });
+    expect(out).toHaveLength(4);
+    expect(out.filter((x) => x.why === 'miss')).toHaveLength(2);
+    expect(out.some((x) => x.q.topicId === foe)).toBe(true);
+    const per: Record<string, number> = {};
+    for (const x of out) per[x.q.topicId] = (per[x.q.topicId] || 0) + 1;
+    expect(Math.max(...Object.values(per))).toBeLessThanOrEqual(2);
+  });
+
+  it('does not ask again what was just answered right today when there is other work', () => {
+    const sp = newProgress();
+    const done = pack.questions.filter((x) => x.topicId === 't-agents');
+    for (const d of done) recordAnswer(sp, d, true, 'sure', 5000, d.answer, 'drill', DAY, 0);
+    const out = pickNow(pack, sp, DAY, 4, { foe: 't-agents' });
+    expect(out.filter((x) => x.q.topicId === 't-agents').length).toBeLessThanOrEqual(1);
   });
 });

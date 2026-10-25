@@ -8,7 +8,9 @@ import type { Boss, Conf, Pack, Topic } from '../core/types';
 import { state } from '../core/store';
 import { DEFEAT_XP, answer, bossBattleStarted, bossHit, bossMiss, defeatBoss, logFight } from '../core/actions';
 import { BATTLE_QUESTIONS, ENEMY, PLATE_DAMAGE, battleDamage, isCrit, topicShort, weekNumber } from '../core/enemy';
-import { backTag, isCorrect, pickDrill, progress } from '../core/study';
+import { backTag, isCorrect, NEED_LABEL, pickNow, progress, type NeedWhy } from '../core/study';
+import { openTopics } from '../core/learn';
+import { examDays } from '../ui/derive';
 import { packOf, questionById, topicById } from '../core/pack';
 import { levelFromTotal, need, title } from '../core/game';
 import { BUZZ, buzz, sfx } from '../core/sfx';
@@ -239,6 +241,9 @@ function Fighting({ pk, b, date }: { pk: Pack; b: Boss; date: string }) {
   const ph = F.phase;
   const q = ph === 'q' || ph === 'fb' ? questionById(pk, F.queue[F.qi]) : undefined;
   const multi = !!q && q.type === 'multi';
+  // what this fight asks is chosen when the screen opens, from the whole bank, and shown before it starts
+  const need = useRef(pickNow(pk, progress(state.p, pk.id), date, base, { foe: b.topicId, open: openTopics(pk, progress(state.p, pk.id)), daysLeft: examDays(date) })).current;
+  const needCounts = (Object.keys(NEED_LABEL) as NeedWhy[]).map((k) => [k, need.filter((x) => x.why === k).length] as const).filter(([, c]) => c > 0);
 
   useEffect(() => {
     const t = setTimeout(() => sfx('appear'), 40);
@@ -325,7 +330,7 @@ function Fighting({ pk, b, date }: { pk: Pack; b: Boss; date: string }) {
       return;
     }
     const sp = progress(state.p, pk.id);
-    const qs = pickDrill(pk, sp, date, { topicId: b.topicId }, base);
+    const qs = need.map((x) => x.q);
     const backs = Object.fromEntries(qs.map((x) => [x.id, backTag(sp, x.id, date)]));
     Object.assign(F, { queue: qs.map((x) => x.id), slotOf: qs.map((_, i) => i), backs, marks: qs.map(() => ''), t0: now });
     if (!qs.length) afterQuestions();
@@ -746,7 +751,19 @@ function Fighting({ pk, b, date }: { pk: Pack; b: Boss; date: string }) {
             </b>
           </div>
           <p class="k-iline z-min">「{b.taunt}」</p>
-          <p class="k-iborn">{b.born}</p>
+          {/* the shadow's origin gives way to what this fight will ask */}
+          {b.hp <= 0 && <p class="k-iborn">{b.born}</p>}
+          {b.hp > 0 && (
+            <div class="k-ineed" aria-label={`いま要る ${need.length}問：${needCounts.map(([k, c]) => `${NEED_LABEL[k]} ${c}`).join('、')}`}>
+              <span class="k-inl">いま要る {need.length}問</span>
+              {needCounts.map(([k, c]) => (
+                <span key={k} class={`k-inc ${k}`}>
+                  {NEED_LABEL[k]}
+                  <b class="z-num">{c}</b>
+                </span>
+              ))}
+            </div>
+          )}
           <div class="k-istats">
             <div>
               <b class="z-min z-num">{total}問</b>

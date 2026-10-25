@@ -27,8 +27,8 @@ describe('levels', () => {
     expect(title(4)).toBe('実践者');
     expect(title(30)).toBe('達人');
     expect(nextUnlock(1)?.lv).toBe(3);
-    expect(nextUnlock(9)?.lv).toBe(10);
-    expect(nextUnlock(10)).toBeNull();
+    expect(nextUnlock(5)?.lv).toBe(9);
+    expect(nextUnlock(9)).toBeNull();
   });
 
   it('levels skills on their own curve', () => {

@@ -1,0 +1,102 @@
+/* 模試 as the real exam: a quiet sheet, one clock, every question as a cell, the score against the pass line */
+.ex-wait { padding: calc(var(--safe-t) + 40px) 18px; font-size: 13px; font-weight: 700; color: var(--g2); }
+.ex-head { max-width: 640px; margin: 8px auto 0; display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; }
+.ex-head > b { font-size: 26px; line-height: 1.1; font-weight: 800; letter-spacing: .02em; }
+.ex-code { margin-left: auto; font-size: 12px; font-weight: 900; color: var(--g2); }
+
+/* before */
+.ex-facts { display: flex; }
+.ex-facts > div { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 4px; padding-left: 14px; box-shadow: inset 1.5px 0 0 rgba(18, 18, 20, .14); }
+.ex-facts > div:first-child { padding-left: 0; box-shadow: none; }
+.ex-facts > div { white-space: nowrap; }
+.ex-facts b { font-size: 36px; line-height: 1; font-weight: 800; }
+.ex-facts span { font-size: 12px; font-weight: 900; color: var(--g3); }
+.ex-rules { margin: 22px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.ex-rules > li { position: relative; padding-left: 20px; font-size: 13.5px; font-weight: 700; line-height: 1.5; }
+.ex-rules > li::before { content: ""; position: absolute; left: 2px; top: 5px; width: 6px; height: 12px; background: var(--k0); transform: skewX(-24deg); }
+.ex-rules > li:last-child::before { background: var(--r); }
+.ex-go { width: 100%; height: 56px; margin-top: 26px; font-size: 17px; }
+.ex-half { width: 100%; height: 44px; margin-top: 10px; }
+.ex-hist { margin-top: 30px; }
+.ex-hh { font-size: 11px; font-weight: 900; letter-spacing: .14em; color: var(--g3); }
+.ex-past { min-height: 48px; display: flex; align-items: center; gap: 12px; box-shadow: inset 0 -1px 0 rgba(18, 18, 20, .1); }
+.ex-pd { flex: none; width: 44px; font-size: 12px; font-weight: 700; color: var(--g3); }
+.ex-pbar, .ex-sbar { position: relative; flex: 1; height: 10px; background: rgba(18, 18, 20, .1); }
+.ex-pbar > i, .ex-sbar > i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--g2); }
+.ex-pbar > i.ok { background: var(--k0); }
+.ex-pbar > b, .ex-sbar > b { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--r); }
+.ex-ps { flex: none; width: 112px; display: flex; align-items: baseline; gap: 6px; }
+.ex-ps > b { font-size: 20px; font-weight: 800; }
+.ex-ps > small { font-size: 11px; font-weight: 700; color: var(--g3); }
+
+/* during */
+.ex-top { padding-bottom: 34px; }
+.ex-n { font-size: 12px; font-weight: 700; color: var(--g2); }
+.ex-n > b { font-family: 'Shippori Mincho B1', serif; font-size: 18px; font-weight: 800; color: var(--w); }
+.ex-clock { min-width: 74px; text-align: right; font-family: 'Shippori Mincho B1', serif; font-size: 24px; font-weight: 800; letter-spacing: .02em; }
+.ex-clock.low { color: var(--r); }
+.ex-map { width: 100%; max-width: 640px; margin: 10px auto 0; padding: 4px 0; border: none; background: transparent; display: flex; flex-wrap: wrap; gap: 3px; }
+.ex-map > i { display: block; width: 8px; height: 12px; background: rgba(234, 231, 224, .14); transform: skewX(-24deg); }
+.ex-map > i.a { background: var(--g1); }
+.ex-map > i.f { box-shadow: inset 0 3px 0 var(--r); }
+.ex-map > i.c { background: var(--w); outline: 1.5px solid var(--w); outline-offset: 1px; }
+.ex-panel { animation: none; }
+.ex-q .ss-qt { font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 17px; line-height: 1.7; font-weight: 700; }
+.ex-op { animation: none; }
+.ex-flag { height: 30px; padding: 0 10px; border: none; background: transparent; display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 900; color: var(--g3); box-shadow: inset 0 0 0 1.5px rgba(18, 18, 20, .2); transition: transform .2s var(--spring); }
+.ex-flag > i { width: 6px; height: 12px; background: rgba(18, 18, 20, .25); transform: skewX(-24deg); }
+.ex-flag.on { color: var(--k0); box-shadow: inset 0 0 0 1.5px var(--k0); }
+.ex-flag.on > i { background: var(--r); }
+.ex-flag:active { transform: scale(.94); transition-duration: .04s; }
+.ex-nav { position: sticky; bottom: calc(-1 * (var(--safe-b) + 28px)); display: flex; align-items: center; gap: 12px; margin: 18px -18px calc(-1 * (var(--safe-b) + 28px)); padding: 12px 18px calc(var(--safe-b) + 20px); background: var(--w); }
+.ex-prev { width: 46px; height: 46px; padding: 0; }
+.ex-left { flex: 1; text-align: center; font-size: 11px; font-weight: 900; letter-spacing: .1em; color: var(--g2); }
+.ex-next { min-width: 132px; height: 46px; }
+
+/* the list before handing in */
+.ex-lh { display: flex; gap: 18px; font-size: 13px; font-weight: 900; color: var(--g3); }
+.ex-lh b { margin-left: 4px; font-family: 'Shippori Mincho B1', serif; font-size: 22px; color: var(--k0); }
+.ex-grid { margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 6px; }
+.ex-grid > button { position: relative; height: 44px; border: none; background: transparent; box-shadow: inset 0 0 0 1.5px rgba(18, 18, 20, .3); font-size: 14px; font-weight: 900; color: var(--k0); transition: transform .2s var(--spring); }
+.ex-grid > button.a { background: var(--k0); color: var(--w); box-shadow: none; }
+.ex-grid > button.f::after { content: ""; position: absolute; right: 4px; top: 4px; width: 5px; height: 10px; background: var(--r); transform: skewX(-24deg); }
+.ex-grid > button:active { transform: scale(.92); transition-duration: .04s; }
+.ex-end { width: 100%; height: 54px; margin-top: 24px; font-size: 15px; }
+.ex-end.armed { background: var(--r); color: #FFF; box-shadow: 3px 3px 0 var(--k0); }
+
+/* after */
+.ex-score { max-width: 640px; margin: 6px auto 0; display: flex; align-items: flex-end; gap: 14px; }
+.ex-score > b { font-size: 72px; line-height: .8; font-weight: 800; }
+.ex-score > b small { margin-left: 6px; font-size: 20px; color: var(--g2); }
+.ex-score > .z-tag { order: 2; margin-bottom: 4px; }
+.ex-sbar { display: block; max-width: 640px; margin: 18px auto 0; background: rgba(234, 231, 224, .14); }
+.ex-sbar > i { background: var(--w); }
+.ss-rbar > i.lo { background: var(--g2); }
+.ex-cs { flex: none; width: 44px; text-align: right; font-size: 12px; font-weight: 700; color: var(--g3); }
+.ex-rv { margin-top: 26px; }
+.ex-rvh { display: flex; gap: 6px; margin-bottom: 6px; }
+.ex-rvh > button { height: 32px; padding: 0 12px; border: none; background: transparent; font-size: 12.5px; font-weight: 900; color: var(--g3); box-shadow: inset 0 0 0 1.5px rgba(18, 18, 20, .2); }
+.ex-rvh > button.on { background: var(--k0); color: var(--w); box-shadow: none; }
+.ex-ri { box-shadow: inset 0 -1px 0 rgba(18, 18, 20, .1); }
+.ex-rih { width: 100%; min-height: 50px; padding: 8px 0; border: none; background: transparent; display: flex; align-items: center; gap: 10px; text-align: left; color: var(--k0); }
+.ex-rih > i { flex: none; width: 28px; font-style: normal; font-family: 'Shippori Mincho B1', serif; font-size: 15px; font-weight: 800; color: var(--g3); }
+.ex-rih > span { flex: 1; min-width: 0; font-size: 13px; font-weight: 700; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ex-rih > em { flex: none; font-style: normal; font-size: 11px; font-weight: 900; color: var(--g3); }
+.ex-ri.ok .ex-rih > em { color: var(--r); }
+.ex-ri.ng .ex-rih > i, .ex-ri.bl .ex-rih > i { color: var(--k0); }
+.ex-ri.open .ex-rih > span { -webkit-line-clamp: unset; display: block; }
+.ex-rib { padding: 2px 0 14px 38px; display: flex; flex-direction: column; gap: 6px; }
+.ex-ok { font-size: 13px; font-weight: 900; }
+.ex-ok::first-letter { color: var(--r); }
+.ex-you { font-size: 12.5px; color: var(--g3); }
+.ex-you s { text-decoration-color: var(--r); text-decoration-thickness: 2px; }
+
+/* the card on 問題集 */
+a.mn-mock { display: block; color: inherit; text-decoration: none; transition: background-color .15s; }
+a.mn-mock:hover { background: #1C1C1F; }
+a.mn-mock:active { background: var(--k4); }
+a.mn-mock:active .z-bw { transform: translate(4px, 4px); box-shadow: 0 0 0 var(--r); transition-duration: .04s; }
+.mn-last { margin-top: 14px; display: flex; align-items: baseline; gap: 10px; font-size: 11.5px; font-weight: 700; color: var(--g2); }
+.mn-last > b { font-size: 26px; line-height: 1; font-weight: 800; color: var(--w); }
+.mn-last > span.ok { color: var(--r); font-weight: 900; }
+.mn-mgo > .z-bw { min-width: 160px; }

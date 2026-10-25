@@ -16,6 +16,8 @@ import { Welcome } from './screens/Welcome';
 import { Battle } from './screens/Battle';
 import { Session } from './screens/Session';
 import { Learn } from './screens/Learn';
+import { Mondai } from './screens/Mondai';
+import { Exam } from './screens/Exam';
 import { Lesson } from './screens/Lesson';
 import { Tasks } from './screens/Tasks';
 import { Recap } from './screens/Recap';
@@ -26,7 +28,7 @@ import { PcShell } from './pc/Shell';
 import { TodayPc } from './pc/TodayPc';
 
 /** Screens that take the whole viewport. */
-const FULL = new Set(['battle', 'session', 'lesson', 'welcome']);
+const FULL = new Set(['battle', 'session', 'exam', 'lesson', 'welcome']);
 /** Screens without the bottom navigation: the full ones, and the pages that close with × or もどる. */
 const NO_NAV = new Set([...FULL, 'recap', 'settings']);
 const hidesNav = (r: Route) => NO_NAV.has(r.name) || (r.name === 'learn' && !!r.args[0]);
@@ -56,6 +58,10 @@ export function Screen({ r, date, now, onReplay, pc = false }: { r: Route; date:
       return <Session args={r.args} date={date} />;
     case 'learn':
       return <Learn args={r.args} date={date} />;
+    case 'exam':
+      return <Exam date={date} />;
+    case 'mondai':
+      return <Mondai />;
     case 'lesson':
       return <Lesson args={r.args} date={date} />;
     case 'tasks':

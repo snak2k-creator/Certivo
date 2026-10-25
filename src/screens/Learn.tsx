@@ -10,11 +10,11 @@ import { activePack } from '../core/pack';
 import { newProgress } from '../core/study';
 import { buzz, BUZZ, sfx } from '../core/sfx';
 import { DOW, dow, md, pad } from '../core/util';
-import { openSheet } from '../ui/sheets';
 import { back } from '../ui/router';
 import { toast } from '../ui/fx';
 import { Arrow, ChevL, ChevR, Search } from '../ui/icons';
 import { Linked, openTerm } from '../ui/words';
+import { StudyTabs } from './Mondai';
 
 const BLANK = newProgress();
 const dl = (d: string) => `${md(d)}（${DOW[dow(d)]}）`;
@@ -46,28 +46,11 @@ export function Learn({ args, date }: { args: string[]; date: string }) {
   return <Home pk={pk} sp={sp} date={date} />;
 }
 
-function CertTag({ pk }: { pk: Pack }) {
-  return (
-    <button
-      type="button"
-      class="ln-cert"
-      onClick={() => openSheet({ kind: 'cert' })}
-      aria-label={`いまの資格は ${pk.code}。切りかえる・足す`}
-    >
-      <span class="z-tag z-tag-w z-tagx">{pk.code}</span>
-      <span class="ln-cs">切りかえ</span>
-    </button>
-  );
-}
-
 function NoWords({ pk }: { pk: Pack }) {
   return (
     <div class="m-page ln">
       <header class="ln-top">
-        <div class="ln-tr">
-          <b class="z-min ln-title">覚える</b>
-          <CertTag pk={pk} />
-        </div>
+        <StudyTabs on="learn" pk={pk} />
         <span class="m-sub">{pk.code} には、まだ 覚える ことばが ありません。</span>
       </header>
       <div class="ln-empty">
@@ -95,10 +78,7 @@ function Home({ pk, sp, date }: { pk: Pack; sp: StudyProgress; date: string }) {
     <div class="m-page ln">
       <div class="ln-a">
         <header class="ln-top">
-          <div class="ln-tr">
-            <b class="z-min ln-title">覚える</b>
-            <CertTag pk={pk} />
-          </div>
+          <StudyTabs on="learn" pk={pk} />
           <span class="m-sub">{done || wc.learned ? `ことば ${wc.all}語のうち ${wc.learned}語を 覚えた · 単元 ${done} / ${ls.length}` : `ことば ${wc.all}語 · 単元 ${ls.length}。全体像から 一つずつ`}</span>
         </header>
 
