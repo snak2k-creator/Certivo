@@ -29,7 +29,7 @@ export function Intro({ date, onDone }: { date: string; onDone: () => void }) {
   const end = () => {
     if (ended.current) return;
     ended.current = true;
-    sfx('slash');
+    sfx('ritual');
     setOut(true);
     later(onDone, 620);
   };
